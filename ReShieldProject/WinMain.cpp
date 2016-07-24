@@ -4,18 +4,19 @@
 #include <Windows.h>
 
 #include "Core/Game.hpp"
-#include "GameState/ReShieldCoreState.hpp"
+#include "GameState/CoreState.hpp"
 
-using namespace ReShield;
+using namespace Eternal::Core;
+using namespace Eternal::GameState;
 
 int WINAPI WinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	ReShieldCoreState ReShieldInitStateObj(hInstance, nCmdShow);
+	CoreState CoreStateObj(hInstance, nCmdShow);
 
-	Game GameObj(&ReShieldInitStateObj);
+	Game GameObj(&CoreStateObj);
 	GameObj.Run();
 
 	return 0;

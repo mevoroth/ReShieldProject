@@ -125,13 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GameState\ReShieldCoreState.cpp" />
-    <ClCompile Include="Windows\WindowsProcess.cpp" />
     <ClCompile Include="WinMain.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GameState\ReShieldCoreState.hpp" />
-    <ClInclude Include="Windows\WindowsProcess.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

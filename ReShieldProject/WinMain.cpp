@@ -5,7 +5,9 @@
 
 #include "Core/Game.hpp"
 #include "GameState/CoreState.hpp"
+#include "GameState/ReShieldPreGameState.hpp"
 
+using namespace ReShield;
 using namespace Eternal::Core;
 using namespace Eternal::GameState;
 
@@ -14,10 +16,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	CoreState CoreStateObj(hInstance, nCmdShow);
+	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();
+	CoreState CoreStateObj(hInstance, nCmdShow, ReShieldPreGameStateObj);
+
+	ReShieldPreGameStateObj->SetCoreState(&CoreStateObj);
 
 	Game GameObj(&CoreStateObj);
 	GameObj.Run();
+
+	delete ReShieldPreGameStateObj;
+	ReShieldPreGameStateObj = nullptr;
 
 	return 0;
 }

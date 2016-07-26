@@ -125,7 +125,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameState\ReShieldInGameState.cpp" />
+    <ClCompile Include="GameState\ReShieldMainMenuState.cpp" />
+    <ClCompile Include="GameState\ReShieldPreGameState.cpp" />
+    <ClCompile Include="GameState\ReShieldQuitState.cpp" />
     <ClCompile Include="WinMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameState\ReShieldInGameState.hpp" />
+    <ClInclude Include="GameState\ReShieldMainMenuState.hpp" />
+    <ClInclude Include="GameState\ReShieldPreGameState.hpp" />
+    <ClInclude Include="GameState\ReShieldQuitState.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -28,6 +28,9 @@ namespace ReShield
 
 	private:
 		CoreState* _CoreState = nullptr;
+
+		GameState* _NextState = this;
+		GameState* _MainMenuState = nullptr;
 	};
 }
 

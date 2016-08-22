@@ -2,11 +2,6 @@
 
 namespace ReShield
 {
-	ReShieldQuitState::ReShieldQuitState(_In_ CoreState* CoreStateObj)
-		: _CoreState(CoreStateObj)
-	{
-	}
-
 	void ReShieldQuitState::Begin()
 	{
 
@@ -21,6 +16,6 @@ namespace ReShield
 	}
 	void ReShieldQuitState::End()
 	{
-
+		delete this;
 	}
 }

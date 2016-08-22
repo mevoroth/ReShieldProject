@@ -16,16 +16,18 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();
-	CoreState CoreStateObj(hInstance, nCmdShow, ReShieldPreGameStateObj);
+	CoreState::CoreStateSettings Settings;
+	Settings.ShaderIncludePath = ".\\shaders\\";
+	Settings.FBXIncludePath = ".\\fbx\\";
 
-	ReShieldPreGameStateObj->SetCoreState(&CoreStateObj);
+	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();
+	CoreState CoreStateObj(Settings, hInstance, nCmdShow, ReShieldPreGameStateObj);
 
 	Game GameObj(&CoreStateObj);
 	GameObj.Run();
 
-	delete ReShieldPreGameStateObj;
-	ReShieldPreGameStateObj = nullptr;
+	//delete ReShieldPreGameStateObj;
+	//ReShieldPreGameStateObj = nullptr;
 
 	return 0;
 }

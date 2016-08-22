@@ -19,6 +19,9 @@
     <Filter Include="GameState">
       <UniqueIdentifier>{6abcc6fa-3598-4db4-823a-497939d8dc4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SaveSystem">
+      <UniqueIdentifier>{96cd0fb9-3c22-43b5-9af4-2d14373e54e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameState\ReShieldInGameState.hpp">
@@ -33,5 +36,6 @@
     <ClInclude Include="GameState\ReShieldQuitState.hpp">
       <Filter>GameState</Filter>
     </ClInclude>
+    <ClInclude Include="ReShield.hpp" />
   </ItemGroup>
 </Project>

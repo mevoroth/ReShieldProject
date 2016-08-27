@@ -17,8 +17,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	int nCmdShow)
 {
 	CoreState::CoreStateSettings Settings;
-	Settings.ShaderIncludePath = ".\\shaders\\";
-	Settings.FBXIncludePath = ".\\fbx\\";
+	Settings.ShaderIncludePath = "..\\assets\\shaders\\";
+	Settings.FBXIncludePath = "..\\assets\\fbx\\";
 
 	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();
 	CoreState CoreStateObj(Settings, hInstance, nCmdShow, ReShieldPreGameStateObj);

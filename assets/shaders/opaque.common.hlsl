@@ -26,10 +26,11 @@ struct PSOut
 	float4 Normal						: SV_TARGET3;
 };
 
-Texture2D OpaqueTexture						: register(t0);
+Texture2D DiffuseTexture					: register(t0);
 Texture2D MetallicRoughnessSpecularTexture	: register(t1);
 Texture2D EmissiveTexture					: register(t2);
 Texture2D NormalTexture						: register(t3);
+
 #define OpaqueSampler BilinearSampler
 
 cbuffer ObjectConstants : register(b1)

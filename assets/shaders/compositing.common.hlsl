@@ -2,6 +2,7 @@
 #define _COMPOSITING_COMMON_HLSL_
 
 #include "common.hlsl"
+#include "sampler.common.hlsl"
 
 struct PSIn
 {

@@ -1,6 +1,6 @@
 #include "opaque.common.hlsl"
 
-PSOut PS( PSIn IN ) : SV_TARGET
+PSOut PS( PSIn IN )
 {
 	PSOut OUT = (PSOut)0;
 
@@ -8,6 +8,7 @@ PSOut PS( PSIn IN ) : SV_TARGET
 	OUT.Emissive					= float4(EmissiveTexture.Sample(OpaqueSampler, IN.UV).xyz, 1.0f);
 	OUT.MetallicRoughnessSpecular	= float4(MetallicRoughnessSpecularTexture.Sample(OpaqueSampler, IN.UV).xyz, 0.0f);
 	OUT.Normal						= float4(NormalTexture.Sample(OpaqueSampler, IN.UV).xyz, 0.0f);
+    OUT.Depth						= IN.Pos.z / IN.Pos.w;
 
 	return OUT;
 }

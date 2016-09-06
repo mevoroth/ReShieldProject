@@ -20,10 +20,11 @@ struct PSIn
 
 struct PSOut
 {
-	float4 Diffuse						: SV_TARGET0;
-	float4 MetallicRoughnessSpecular	: SV_TARGET1;
-	float4 Emissive						: SV_TARGET2;
-	float4 Normal						: SV_TARGET3;
+	float4	Diffuse						: SV_Target0;
+	float4	MetallicRoughnessSpecular	: SV_Target1;
+	float4	Emissive					: SV_Target2;
+	float4	Normal						: SV_Target3;
+    float	Depth						: SV_Depth;
 };
 
 Texture2D DiffuseTexture					: register(t0);

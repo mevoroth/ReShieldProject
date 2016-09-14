@@ -7,13 +7,21 @@ namespace ReShield
 {
 	using namespace Eternal::Core;
 
+	class ReShieldInGameStateData;
+
 	class ReShieldInGameState : public GameState
 	{
 	public:
+		ReShieldInGameState();
+		~ReShieldInGameState();
+
 		virtual void Begin() override;
 		virtual void Update() override;
 		virtual GameState* NextState() override;
 		virtual void End() override;
+
+	private:
+		//ReShieldInGameStateData* _ReShieldInGameStateData = nullptr;
 	};
 }
 

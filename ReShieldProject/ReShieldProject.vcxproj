@@ -133,6 +133,7 @@
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Data\ReShieldData.hpp" />
     <ClInclude Include="GameState\ReShieldInGameState.hpp" />
     <ClInclude Include="GameState\ReShieldMainMenuState.hpp" />
     <ClInclude Include="GameState\ReShieldPreGameState.hpp" />

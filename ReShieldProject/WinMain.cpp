@@ -6,6 +6,7 @@
 #include "Core/Game.hpp"
 #include "GameState/CoreState.hpp"
 #include "GameState/ReShieldPreGameState.hpp"
+#include "Data/ReShieldData.hpp"
 
 using namespace ReShield;
 using namespace Eternal::Core;
@@ -19,9 +20,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	CoreState::CoreStateSettings Settings;
 	Settings.ShaderIncludePath = "..\\assets\\shaders\\";
 	Settings.FBXIncludePath = "..\\assets\\fbx\\";
+	Settings.SavePath = "..\\save\\";
 
 	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();
 	CoreState CoreStateObj(Settings, hInstance, nCmdShow, ReShieldPreGameStateObj);
+	CoreStateObj.SetSharedData(new ReShieldData());
 
 	Game GameObj(&CoreStateObj);
 	GameObj.Run();

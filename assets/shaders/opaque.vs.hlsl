@@ -5,7 +5,7 @@ PSIn VS( VSIn IN )
 	PSIn OUT = (PSIn)0;
 	OUT.Pos = IN.Pos;
 
-	//OUT.Pos = mul(OUT.Pos, Model);
+	OUT.Pos = mul(OUT.Pos, transpose(Model));
 	OUT.Pos = mul(OUT.Pos, ViewProjection);
 
 	OUT.UV		= IN.UV;

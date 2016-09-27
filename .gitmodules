@@ -13,3 +13,6 @@
 [submodule "eternal-engine-extern"]
 	path = eternal-engine-extern
 	url = git@github.com:mevoroth/eternal-engine-extern.git
+[submodule "eternal-engine-shaders"]
+	path = eternal-engine-shaders
+	url = git@github.com:mevoroth/eternal-engine-shaders.git

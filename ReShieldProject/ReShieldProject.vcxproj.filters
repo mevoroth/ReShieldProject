@@ -22,9 +22,6 @@
     <Filter Include="Data">
       <UniqueIdentifier>{225bda10-f34b-4bcb-ac60-0a9a1198ad2a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{706b744b-6219-48ad-8b5a-a090c04780b7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Save">
       <UniqueIdentifier>{a5aa8a67-a497-4165-8b57-d44ee2d26780}</UniqueIdentifier>
     </Filter>
@@ -46,41 +43,6 @@
     <ClInclude Include="Data\ReShieldData.hpp">
       <Filter>Data</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\assets\shaders\common.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\compositing.common.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\compositing.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\compositing.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\opaque.common.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\opaque.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\opaque.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\sampler.common.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\vertexcolor.common.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\vertexcolor.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shaders\vertexcolor.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\save\save.sav">

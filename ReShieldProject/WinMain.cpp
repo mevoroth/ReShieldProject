@@ -18,8 +18,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	int nCmdShow)
 {
 	CoreState::CoreStateSettings Settings;
-	Settings.ShaderIncludePath = "..\\assets\\shaders\\";
-	Settings.FBXIncludePath = "..\\assets\\fbx\\";
+	Settings.ShaderIncludePath = "..\\eternal-engine-shaders\\Shaders\\";
+	Settings.FBXPath = "..\\assets\\fbx\\";
+	Settings.TexturePath = "..\\assets\\textures\\";
 	Settings.SavePath = "..\\save\\";
 
 	ReShieldPreGameState* ReShieldPreGameStateObj = new ReShieldPreGameState();

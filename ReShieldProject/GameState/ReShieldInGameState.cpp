@@ -16,6 +16,8 @@
 #include "Camera/PerspectiveCamera.hpp"
 #include "Input/Input.hpp"
 
+#include "Core/GraphicGameObject.hpp"
+
 #include "imgui.h"
 
 namespace ReShield
@@ -46,13 +48,16 @@ namespace ReShield
 		GetSharedData()->GraphicGameObjects = (std::vector<GraphicGameObject*>*)Eternal::SaveSystem::SaveSystem::Get()->Load("save.sav");
 
 		GetSharedData()->Camera = new CameraGameObject();
-		PerspectiveCamera* Camera = new PerspectiveCamera(1.f, 1000.0f, 90.0f, 16.0f/9.0f);
+		PerspectiveCamera* Camera = new PerspectiveCamera(1.f, 2000.0f, 90.0f, 16.0f/9.0f);
 		GetSharedData()->Camera->GetCameraComponent()->SetCamera(Camera);
 		GetSharedData()->Camera->GetCameraComponent()->AttachTo(GetSharedData()->Camera->GetTransformComponent());
 
 		GetSharedData()->Lights = new LightGameObject();
 		Light* PointLight = new Light(Vector3(1.0f, 0.5f, 80.0f / 255.0f), 100.0f, 1.0f);
 		GetSharedData()->Lights->GetLightComponent()->SetLight(PointLight);
+		GetSharedData()->Lights->GetTransformComponent()->GetTransform().SetTranslation(Vector3(0.f, 150.0f, 0.f));
+
+		//(*GetSharedData()->GraphicGameObjects)[0]->GetTransformComponent()->GetTransform().Rotate(Vector3(-90.0f, 0.f, 0.f));
 	}
 	void ReShieldInGameState::Update()
 	{
@@ -185,7 +190,7 @@ namespace ReShield
 		ImGui::Begin("Light settings");
 		ImGui::InputFloat3("Light position", &LightPosition.x);
 		ImGui::SliderFloat("Light distance", &LightDistance, 0.001f, 1000.0f);
-		ImGui::SliderFloat("Light intensity", &LightIntensity, 0.001f, 1000.0f);
+		ImGui::SliderFloat("Light intensity", &LightIntensity, 0.001f, 50.0f);
 		ImGui::ColorEdit3("Light color", &LightColor.x);
 		ImGui::End();
 

@@ -10,6 +10,7 @@
 #include "Core/CameraComponent.hpp"
 #include "Core/TransformComponent.hpp"
 #include "Core/LightComponent.hpp"
+#include "Core/GraphicGameObject.hpp"
 #include "Transform/Transform.hpp"
 #include "Camera/Camera.hpp"
 #include "Light/Light.hpp"
@@ -48,46 +49,79 @@ namespace ReShield
 		GetSharedData()->GraphicGameObjects = (std::vector<GraphicGameObject*>*)Eternal::SaveSystem::SaveSystem::Get()->Load("save.sav");
 
 		GetSharedData()->Camera = new CameraGameObject();
-		PerspectiveCamera* Camera = new PerspectiveCamera(1.f, 2000.0f, 90.0f, 16.0f/9.0f);
+		PerspectiveCamera* Camera = new PerspectiveCamera(1000.f, 1.f, 90.0f, 16.0f/9.0f);
 		GetSharedData()->Camera->GetCameraComponent()->SetCamera(Camera);
 		GetSharedData()->Camera->GetCameraComponent()->AttachTo(GetSharedData()->Camera->GetTransformComponent());
 
+		// REMOVE THIS
 		GetSharedData()->Lights = new LightGameObject();
-		Light* PointLight = new Light(Vector3(1.0f, 0.5f, 80.0f / 255.0f), 100.0f, 1.0f);
+		Light* PointLight = new Light(Vector3(1.0f, 0.5f, 80.0f / 255.0f), 2000.0f, 1.0f);
 		GetSharedData()->Lights->GetLightComponent()->SetLight(PointLight);
 		GetSharedData()->Lights->GetTransformComponent()->GetTransform().SetTranslation(Vector3(0.f, 150.0f, 0.f));
+		GetSharedData()->Lights->GetTransformComponent()->GetTransform().Rotate(Vector3(1.57079632679489661923f, 0.0f, 0.0f));
+
+		Shadow* ShadowObj = new Shadow(1.f, 500.0f, 90.0f, 1.0f);
+		GetSharedData()->Lights->GetLightComponent()->SetShadow(ShadowObj);
+		GetSharedData()->Lights->GetLightComponent()->AttachTo(GetSharedData()->Lights->GetTransformComponent());
+
+		Matrix4x4 Mat;
+		GetSharedData()->Lights->GetLightComponent()->GetShadow()->GetViewProjectionMatrix(Mat);
+		GetSharedData()->Lights->GetLightComponent()->Update(0);
 
 		//(*GetSharedData()->GraphicGameObjects)[0]->GetTransformComponent()->GetTransform().Rotate(Vector3(-90.0f, 0.f, 0.f));
 	}
 	void ReShieldInGameState::Update()
 	{
+		static TimeSecondsT TotalTime = 0.0;
 		TimeSecondsT ElapsedTime = Eternal::Time::Time::Get()->GetDeltaTimeSeconds();
+		TotalTime += ElapsedTime;
 
 		Camera* MainCamera = GetSharedData()->Camera->GetCameraComponent()->GetCamera();
 		Transform& CameraTransform = GetSharedData()->Camera->GetTransformComponent()->GetTransform();
 
-		//Vector4 Pos0(0.f, 0.f, 1.f, 1.f);
-		//Vector4 Pos1(0.f, 0.f, 1000.f, 1.f);
+		Vector4 PosZero(0.0f, 0.0f, 0.0f, 1.0f);
 
-		//Vector4 Pos2(1.f, 1.f, 1.f, 1.f);
-		//Vector4 Pos3(1.f, 1.f, 1000.f, 1.f);
+		Vector4 Pos0(0.f, 0.f, 1.f, 1.f);
+		Vector4 Pos1(0.f, 0.f, 1000.f, 1.f);
 
-		//Vector4 Pos4(1000.f, 1000.f, 1.f, 1.f);
-		//Vector4 Pos5(1000.f, 1000.f, 1000.f, 1.f);
+		Vector4 Pos2(1.f, 1.f, 1.f, 1.f);
+		Vector4 Pos3(1.f, 1.f, 1000.f, 1.f);
 
-		//Matrix4x4 View;
+		Vector4 Pos4(1000.f, 1000.f, 1.f, 1.f);
+		Vector4 Pos5(1000.f, 1000.f, 1000.f, 1.f);
+
+		Matrix4x4 View;
+		Matrix4x4 Proj;
+		Matrix4x4 InvProj;
+		MainCamera->GetViewProjectionMatrix(Proj);
+		MainCamera->GetViewProjectionMatrixInverse(InvProj);
+		MainCamera->GetViewMatrix(View);
+
 		//Matrix4x4 Proj;
-		//Matrix4x4 InvProj;
-		//MainCamera->GetViewProjectionMatrix(Proj);
-		//MainCamera->GetViewProjectionMatrixInverse(InvProj);
-		//MainCamera->GetViewMatrix(View);
+		//GetSharedData()->Lights->GetLightComponent()->GetShadow()->GetViewProjectionMatrix(Proj);
 
-		//Vector4 ProjPos0 = Proj * Pos0;
-		//Vector4 ProjPos1 = Proj * Pos1;
-		//Vector4 ProjPos2 = Proj * Pos2;
-		//Vector4 ProjPos3 = Proj * Pos3;
-		//Vector4 ProjPos4 = Proj * Pos4;
-		//Vector4 ProjPos5 = Proj * Pos5;
+		Vector4 ProjPosZero = Proj * PosZero;
+		Vector4 ProjPos0 = Proj * Pos0;
+		Vector4 ProjPos1 = Proj * Pos1;
+		Vector4 ProjPos2 = Proj * Pos2;
+		Vector4 ProjPos3 = Proj * Pos3;
+		Vector4 ProjPos4 = Proj * Pos4;
+		Vector4 ProjPos5 = Proj * Pos5;
+
+		ProjPos0.x /= ProjPos0.w;
+		ProjPos0.y /= ProjPos0.w;
+		ProjPos0.z /= ProjPos0.w;
+		ProjPos0.w /= ProjPos0.w;
+
+		ProjPos1.x /= ProjPos1.w;
+		ProjPos1.y /= ProjPos1.w;
+		ProjPos1.z /= ProjPos1.w;
+		ProjPos1.w /= ProjPos1.w;
+
+		ProjPos2.x /= ProjPos2.w;
+		ProjPos2.y /= ProjPos2.w;
+		ProjPos2.z /= ProjPos2.w;
+		ProjPos2.w /= ProjPos2.w;
 
 		//Vector4 WSCube[8];
 		//Vector4 ProjCube[8];
@@ -156,13 +190,13 @@ namespace ReShield
 
 		const Vector3 Speed = Forward * ForwardSpeed + Right * RightSpeed + Up * UpSpeed;
 
-		//const float RotateX = (float)ElapsedTime * 10.0f * Eternal::Input::Input::Get()->GetAxis(Eternal::Input::Input::JOY0_RY);
-		//const float RotateY = (float)ElapsedTime * 10.0f * Eternal::Input::Input::Get()->GetAxis(Eternal::Input::Input::JOY0_RX);
-		//const float RotateZ = (float)ElapsedTime * 10.0f * 0.f;
+		const float RotateX = (float)ElapsedTime * 10.0f * Eternal::Input::Input::Get()->GetAxis(Eternal::Input::Input::JOY0_RY);
+		const float RotateY = (float)ElapsedTime * 10.0f * Eternal::Input::Input::Get()->GetAxis(Eternal::Input::Input::JOY0_RX);
+		const float RotateZ = (float)ElapsedTime * 10.0f * 0.f;
 
-		//const Vector3 AngularSpeed = Vector3(RotateX, RotateY, RotateZ);
+		const Vector3 AngularSpeed = Vector3(RotateX, RotateY, RotateZ);
 
-		const Vector3 AngularSpeed = Vector3(0.f, 0.f, 0.f);
+		//const Vector3 AngularSpeed = Vector3(0.f, 0.f, 0.f);
 
 		CameraTransform.Rotate(AngularSpeed);
 		CameraTransform.Translate(Vector3(RightSpeed, UpSpeed, ForwardSpeed));
@@ -198,6 +232,16 @@ namespace ReShield
 		GetSharedData()->Lights->GetLightComponent()->GetLight()->SetDistance(LightDistance);
 		GetSharedData()->Lights->GetLightComponent()->GetLight()->SetIntensity(LightIntensity);
 		GetSharedData()->Lights->GetLightComponent()->GetLight()->SetColor(LightColor);
+
+		// DEBUG
+		float Alpha = 1.0f - abs(fmod(TotalTime / 2.0f, 2.0f) - 1.0f);
+		Vector3 Pos = Lerp(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1000.0f), Alpha);
+		ImGui::Begin("Debug");
+		ImGui::Text("Elapsed Time: [%f]", TotalTime);
+		ImGui::Text("Lerp Alpha: [%f]", Alpha);
+		ImGui::Text("Instance 0: [%f %f %f]", Pos.x, Pos.y, Pos.z);
+		ImGui::End();
+		(*GetSharedData()->GraphicGameObjects)[0]->GetInstance(0)->GetTransformComponent()->GetTransform().SetTranslation(Pos);
 	}
 	GameState* ReShieldInGameState::NextState()
 	{

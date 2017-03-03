@@ -70,6 +70,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(ProgramW6432)\VulkanSDK\1.0.37.0\Source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,11 +91,12 @@
       <PreprocessorDefinitions>ETERNAL_USE_DXMATH_TYPES;FBXSDK_SHARED;ETERNAL_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>sal.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\lib\vs2015\x64\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

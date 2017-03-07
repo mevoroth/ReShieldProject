@@ -26,6 +26,7 @@
 #include "Graphics/BlendState.hpp"
 #include "Graphics/Viewport.hpp"
 #include "Vulkan/VulkanDevice.hpp"
+#include "Vulkan/VulkanSwapChain.hpp"
 #include "Vulkan/VulkanCommandList.hpp"
 #include "Vulkan/VulkanPipeline.hpp"
 #include "Vulkan/VulkanState.hpp"
@@ -68,27 +69,29 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	Window Window(hInstance, nCmdShow, "Vulkan", "Vulkan", 1280, 720);
-	Window.Create(WindowProc);
-	VulkanDevice Device(Window);
+	Window WindowObj(hInstance, nCmdShow, "Vulkan", "Vulkan", 1280, 720);
+	WindowObj.Create(WindowProc);
+	VulkanDevice DeviceObj(WindowObj);
+	VulkanSwapChain SwapChainObj(DeviceObj, WindowObj);
 
 	FilePath::Register("..\\eternal-engine-shaders\\Shaders\\", FilePath::SHADERS);
 
 	Viewport ViewportObj(0, 0, 1280, 720);
 
-	VulkanShader VS(Device, "PostProcessVS", "postprocess.vs.spirv");
-	VulkanShader PS(Device, "DefaultPostProcessPS", "postprocess.ps.spirv");
+	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.spirv");
+	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "postprocess.ps.spirv");
 
-	VulkanCommandList CommandList(Device);
-	VulkanPipeline Pipeline(Device);
-	VulkanState StateObj(Device, Pipeline, VS, PS, ViewportObj);
+	VulkanCommandList CommandList(DeviceObj, *DeviceObj.GetCommandQueue());
+	VulkanPipeline Pipeline(DeviceObj);
+	VulkanState StateObj(DeviceObj, Pipeline, VS, PS, ViewportObj);
 
 	for (;;)
 	{
-		Device.GetCommandQueue()->Reset(0);
-		CommandList.Begin();
+		DeviceObj.GetCommandQueue()->Reset(0);
+		CommandList.Begin(SwapChainObj.GetBackBuffer(0), StateObj, Pipeline);
 		CommandList.DrawPrimitive(6);
 		CommandList.End();
+		DeviceObj.GetCommandQueue()->Flush(&CommandList, 1);
 	}
 
 	//WindowObj.Create(WindowProc);

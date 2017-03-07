@@ -69,7 +69,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProgramW6432)\VulkanSDK\1.0.37.0\Include</IncludePath>
     <LibraryPath>$(ProgramW6432)\VulkanSDK\1.0.37.0\Source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -25,6 +25,7 @@
 #include "Graphics/Comparison.hpp"
 #include "Graphics/BlendState.hpp"
 #include "Graphics/Viewport.hpp"
+#include "Graphics/ShaderType.hpp"
 #include "Vulkan/VulkanDevice.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 #include "Vulkan/VulkanCommandList.hpp"
@@ -32,16 +33,21 @@
 #include "Vulkan/VulkanState.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanCommandQueue.hpp"
+#include "Vulkan/VulkanRenderPass.hpp"
+#include "Vulkan/VulkanFence.hpp"
 
 #include "File/FilePath.hpp"
 
 #include <dxgi1_4.h>
+#include <vector>
+
 using namespace ReShield;
 using namespace Eternal::Core;
 using namespace Eternal::GameState;
 
 using namespace Eternal::Graphics;
 using namespace Eternal::File;
+using namespace std;
 
 LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -74,24 +80,51 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	VulkanDevice DeviceObj(WindowObj);
 	VulkanSwapChain SwapChainObj(DeviceObj, WindowObj);
 
+	VulkanCommandQueue DirectCommandQueue(DeviceObj, SwapChainObj);
+
 	FilePath::Register("..\\eternal-engine-shaders\\Shaders\\", FilePath::SHADERS);
 
 	Viewport ViewportObj(0, 0, 1280, 720);
 
-	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.spirv");
-	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "postprocess.ps.spirv");
+	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.spirv", VS);
+	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "postprocess.ps.spirv", PS);
 
-	VulkanCommandList CommandList(DeviceObj, *DeviceObj.GetCommandQueue());
+	//VulkanCommandList CommandList(DeviceObj, DirectCommandQueue.GetCommandAllocator());
+	VulkanCommandList CommandLists[] = {
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
+	};
+
+	VulkanFence FenceObj(DeviceObj, 2);
 	VulkanPipeline Pipeline(DeviceObj);
+
 	VulkanState StateObj(DeviceObj, Pipeline, VS, PS, ViewportObj);
 
+	static int i = 0;
 	for (;;)
 	{
-		DeviceObj.GetCommandQueue()->Reset(0);
-		CommandList.Begin(SwapChainObj.GetBackBuffer(0), StateObj, Pipeline);
-		CommandList.DrawPrimitive(6);
-		CommandList.End();
-		DeviceObj.GetCommandQueue()->Flush(&CommandList, 1);
+		FenceObj.Wait(DeviceObj);
+		FenceObj.Reset(DeviceObj);
+		uint32_t CurrentFrame = SwapChainObj.AcquireFrame(DeviceObj, FenceObj);
+		DirectCommandQueue.Reset(CurrentFrame);
+		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, Pipeline, *SwapChainObj.GetMainRenderPass());
+		CommandLists[CurrentFrame].DrawPrimitive(6);
+		CommandLists[CurrentFrame].End();
+		//FenceObj.Reset(DeviceObj);
+		//DirectCommandQueue.Flush(FenceObj, SwapChainObj, &CommandList, 1);
+		CommandList* VulkanCommandLists[] = {
+			&CommandLists[CurrentFrame]
+		};
+		FenceObj.Signal(SwapChainObj, DirectCommandQueue, VulkanCommandLists, 1);
+		SwapChainObj.Present(DeviceObj, DirectCommandQueue, CurrentFrame);
+
+		MSG Message = { 0 };
+		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&Message);
+			DispatchMessage(&Message);
+		}
+		i++;
 	}
 
 	//WindowObj.Create(WindowProc);

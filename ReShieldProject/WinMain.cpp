@@ -11,6 +11,7 @@
 #include "Macros/Macros.hpp"
 #include "Window/Window.hpp"
 //#include "d3d12/D3D12Device.hpp"
+//#include "d3d12/D3D12SwapChain.hpp"
 //#include "d3d12/D3D12State.hpp"
 //#include "d3d12/D3D12InputLayout.hpp"
 //#include "d3d12/D3D12ShaderFactory.hpp"
@@ -77,6 +78,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
 	Window WindowObj(hInstance, nCmdShow, "Vulkan", "Vulkan", 1280, 720);
 	WindowObj.Create(WindowProc);
+
+	//new D3D12ShaderFactory();
+	//D3D12Device::Initialize();
+	//D3D12Device DeviceObj(0);
+	//D3D12CommandQueue DirectCommandQueue(DeviceObj, 2);
+	//D3D12SwapChain SwapChainObj(DeviceObj, WindowObj, DirectCommandQueue);
+
 	VulkanDevice DeviceObj(WindowObj);
 	VulkanSwapChain SwapChainObj(DeviceObj, WindowObj);
 
@@ -86,66 +94,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	Viewport ViewportObj(0, 0, 1280, 720);
 
+	//Shader* VS = D3D12ShaderFactory::Get()->CreateVertexShader("PostProcess", "postprocess.vs.hlsl");
+	//Shader* PS = D3D12ShaderFactory::Get()->CreatePixelShader("DefaultPostProcess", "defaultpostprocess.ps.hlsl");
+	
 	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.spirv", VS);
 	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "postprocess.ps.spirv", PS);
-
-	//VulkanCommandList CommandList(DeviceObj, DirectCommandQueue.GetCommandAllocator());
-	VulkanCommandList CommandLists[] = {
-		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
-		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
-	};
-
-	VulkanFence FenceObj(DeviceObj, 2);
-	VulkanPipeline Pipeline(DeviceObj);
-
-	VulkanState StateObj(DeviceObj, Pipeline, VS, PS, ViewportObj);
-
-	static int i = 0;
-	for (;;)
-	{
-		FenceObj.Wait(DeviceObj);
-		FenceObj.Reset(DeviceObj);
-		uint32_t CurrentFrame = SwapChainObj.AcquireFrame(DeviceObj, FenceObj);
-		DirectCommandQueue.Reset(CurrentFrame);
-		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, Pipeline, *SwapChainObj.GetMainRenderPass());
-		CommandLists[CurrentFrame].DrawPrimitive(6);
-		CommandLists[CurrentFrame].End();
-		//FenceObj.Reset(DeviceObj);
-		//DirectCommandQueue.Flush(FenceObj, SwapChainObj, &CommandList, 1);
-		CommandList* VulkanCommandLists[] = {
-			&CommandLists[CurrentFrame]
-		};
-		FenceObj.Signal(SwapChainObj, DirectCommandQueue, VulkanCommandLists, 1);
-		SwapChainObj.Present(DeviceObj, DirectCommandQueue, CurrentFrame);
-
-		MSG Message = { 0 };
-		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&Message);
-			DispatchMessage(&Message);
-		}
-		i++;
-	}
-
-	//WindowObj.Create(WindowProc);
-
-	//D3D12Device::Initialize();
-	//D3D12Device DeviceObj(0);
-
-	//DeviceObj.CreateSwapChain(WindowObj);
-
+	
 	//InputLayout::VertexDataType Vertices[] = {
 	//	InputLayout::POSITION_T
 	//};
-
-	//D3D12ShaderFactory* ShaderFactoryObj = new D3D12ShaderFactory();
-
-	//Viewport ViewportObj(0, 0, 1280, 720);
-
 	//D3D12InputLayout InputLayoutObj(Vertices, ETERNAL_ARRAYSIZE(Vertices));
-	//D3D12ShaderFactory::Get()->RegisterShaderPath("..\\eternal-engine-shaders\\Shaders\\");
-	//Shader* VS = D3D12ShaderFactory::Get()->CreateVertexShader("PostProcess", "postprocess.vs.hlsl");
-	//Shader* PS = D3D12ShaderFactory::Get()->CreatePixelShader("DefaultPostProcess", "defaultpostprocess.ps.hlsl");
 	//DepthTest DepthTestObj;
 	//StencilTest StencilTestObj;
 	//BlendState BlendStates[] = {
@@ -159,44 +117,56 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//	BlendState()
 	//};
 
-	//D3D12State State(DeviceObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, DeviceObj.GetBackBuffer(0), 1, nullptr, 0);
-	//D3D12CommandList CommandList(DeviceObj, *DeviceObj.GetCommandQueue(), State);
-	//D3D12Fence Fence(DeviceObj, 2);
+	//D3D12State StateObj(DeviceObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
 
-	//const float ClearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//D3D12CommandList CommandLists(DeviceObj, DirectCommandQueue, StateObj);
+	VulkanCommandList CommandLists[] = {
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
+	};
 
-	//int i = 0;
-	//int CurrentFrame = 0;
-	//for (;;)
-	//{
-	//	CurrentFrame = DeviceObj.GetSwapChain3()->GetCurrentBackBufferIndex();
-	//	Fence.Wait();
+	//D3D12Fence FenceObj(DeviceObj, 2);
+	VulkanFence FenceObj(DeviceObj, 2);
+	VulkanPipeline Pipeline(DeviceObj);
 
-	//	DeviceObj.GetCommandQueue()->Reset(CurrentFrame);
+	VulkanState StateObj(DeviceObj, Pipeline, VS, PS, ViewportObj);
 
-	//	CommandList.Begin(*DeviceObj.GetCommandQueue()->GetCommandAllocator(CurrentFrame), State);
-	//	CommandList.SetViewport(ViewportObj);
-	//	CommandList.SetScissorRectangle(ViewportObj);
-	//	DeviceObj.GetBackBuffer(CurrentFrame)->Transition(CommandList, RENDERTARGET);
-	//	CommandList.BindRenderTarget(0, *DeviceObj.GetBackBuffer(CurrentFrame));
-	//	CommandList.GetD3D12GraphicsCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//	//CommandList.GetD3D12GraphicsCommandList()->ClearRenderTargetView(DeviceObj.GetBackBuffer(CurrentFrame)->GetCpuDescriptor(), ClearColor, 0, nullptr);
-	//	CommandList.DrawPrimitive(6);
-	//	DeviceObj.GetBackBuffer(CurrentFrame)->Transition(CommandList, PRESENT);
-	//	CommandList.End();
+	static int i = 0;
+	for (;;)
+	{
+		FenceObj.Wait(DeviceObj);
+		FenceObj.Reset(DeviceObj);
+		uint32_t CurrentFrame = SwapChainObj.AcquireFrame(DeviceObj, FenceObj);
+		DirectCommandQueue.Reset(CurrentFrame);
+		//CommandLists.Begin(*DirectCommandQueue.GetCommandAllocator(CurrentFrame), StateObj);
+		//CommandLists.SetViewport(ViewportObj);
+		//CommandLists.SetScissorRectangle(ViewportObj);
+		//CommandLists.GetD3D12GraphicsCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		//static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, RENDERTARGET);
+		//CommandLists.BindRenderTarget(0, static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)));
+		//CommandLists.DrawPrimitive(6);
+		//static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, PRESENT);
+		//CommandLists.End();
+		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, Pipeline, *SwapChainObj.GetMainRenderPass());
+		CommandLists[CurrentFrame].DrawPrimitive(6);
+		CommandLists[CurrentFrame].End();
+		FenceObj.Reset(DeviceObj);
+		CommandList* VulkanCommandLists[] = {
+			&CommandLists[CurrentFrame]
+			//&CommandLists
+		};
+		//DirectCommandQueue.GetD3D12CommandQueue()->ExecuteCommandLists(1, (ID3D12CommandList* const*)&CommandLists.GetD3D12GraphicsCommandList());
+		SwapChainObj.Present(DeviceObj, DirectCommandQueue, CurrentFrame);
+		FenceObj.Signal(SwapChainObj, DirectCommandQueue, VulkanCommandLists, 1);
 
-	//	DeviceObj.GetCommandQueue()->GetD3D12CommandQueue()->ExecuteCommandLists(1, (ID3D12CommandList* const*)&CommandList.GetD3D12GraphicsCommandList());
-	//	DeviceObj.GetSwapChain()->Present(0, 0);
-	//	Fence.Signal(*DeviceObj.GetCommandQueue());
-
-	//	MSG Message = { 0 };
-	//	if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-	//	{
-	//		TranslateMessage(&Message);
-	//		DispatchMessage(&Message);
-	//	}
-	//	i = i ^ 1;
-	//}
+		MSG Message = { 0 };
+		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&Message);
+			DispatchMessage(&Message);
+		}
+		i++;
+	}
 
 	//CoreState::CoreStateSettings Settings;
 	//Settings.ShaderIncludePath = "..\\eternal-engine-shaders\\Shaders\\";

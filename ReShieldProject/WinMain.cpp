@@ -155,9 +155,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			&CommandLists[CurrentFrame]
 			//&CommandLists
 		};
-		//DirectCommandQueue.GetD3D12CommandQueue()->ExecuteCommandLists(1, (ID3D12CommandList* const*)&CommandLists.GetD3D12GraphicsCommandList());
+		DirectCommandQueue.Submit(CurrentFrame, VulkanCommandLists, ETERNAL_ARRAYSIZE(VulkanCommandLists), FenceObj, SwapChainObj);
+		FenceObj.Signal(DirectCommandQueue);
 		SwapChainObj.Present(DeviceObj, DirectCommandQueue, CurrentFrame);
-		FenceObj.Signal(SwapChainObj, DirectCommandQueue, VulkanCommandLists, 1);
 
 		MSG Message = { 0 };
 		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))

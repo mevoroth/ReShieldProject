@@ -48,5 +48,6 @@
     <None Include="..\save\save.sav">
       <Filter>Save</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

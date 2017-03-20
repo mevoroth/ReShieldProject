@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReShieldProject", "ReShieldProject\ReShieldProject.vcxproj", "{AD9D001F-1FE6-4F05-A15A-8C8EAB914AB6}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -10,6 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReShieldProject", "ReShield
 		{7BFECF84-04D0-4BBC-BCB9-DA51D5564E95} = {7BFECF84-04D0-4BBC-BCB9-DA51D5564E95}
 		{5326DE8A-9474-4F60-9CEC-D51F9CA0D697} = {5326DE8A-9474-4F60-9CEC-D51F9CA0D697}
 		{23D5DF8E-B7C8-40C2-B797-8C06280D1F24} = {23D5DF8E-B7C8-40C2-B797-8C06280D1F24}
+		{F7652EC4-506A-4AB6-B864-20A5A59D9690} = {F7652EC4-506A-4AB6-B864-20A5A59D9690}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eternal-engine-components", "eternal-engine-components\eternal-engine-components.vcxproj", "{8A5A5437-7E81-42BC-9DA7-1693D20B73BA}"

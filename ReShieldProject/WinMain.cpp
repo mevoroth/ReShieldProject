@@ -30,16 +30,16 @@
 #include "Vulkan/VulkanDevice.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 #include "Vulkan/VulkanCommandList.hpp"
-#include "Vulkan/VulkanPipeline.hpp"
 #include "Vulkan/VulkanState.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanCommandQueue.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan/VulkanFence.hpp"
+#include "Vulkan/VulkanRootSignature.hpp"
 
 #include "File/FilePath.hpp"
 
-#include <dxgi1_4.h>
+//#include <dxgi1_4.h>
 #include <vector>
 
 using namespace ReShield;
@@ -97,8 +97,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//Shader* VS = D3D12ShaderFactory::Get()->CreateVertexShader("PostProcess", "postprocess.vs.hlsl");
 	//Shader* PS = D3D12ShaderFactory::Get()->CreatePixelShader("DefaultPostProcess", "defaultpostprocess.ps.hlsl");
 	
-	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.spirv", VS);
-	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "postprocess.ps.spirv", PS);
+	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.hlsl", VS);
+	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "defaultpostprocess.ps.hlsl", PS);
 	
 	//InputLayout::VertexDataType Vertices[] = {
 	//	InputLayout::POSITION_T
@@ -127,9 +127,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	//D3D12Fence FenceObj(DeviceObj, 2);
 	VulkanFence FenceObj(DeviceObj, 2);
-	VulkanPipeline Pipeline(DeviceObj);
-
-	VulkanState StateObj(DeviceObj, Pipeline, VS, PS, ViewportObj);
+	VulkanRootSignature RootSignatureObj(DeviceObj);
+	VulkanState StateObj(DeviceObj, RootSignatureObj, *SwapChainObj.GetMainRenderPass(), VS, PS, ViewportObj);
 
 	static int i = 0;
 	for (;;)
@@ -147,7 +146,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		//CommandLists.DrawPrimitive(6);
 		//static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, PRESENT);
 		//CommandLists.End();
-		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, Pipeline, *SwapChainObj.GetMainRenderPass());
+		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, *SwapChainObj.GetMainRenderPass());
 		CommandLists[CurrentFrame].DrawPrimitive(6);
 		CommandLists[CurrentFrame].End();
 		FenceObj.Reset(DeviceObj);

@@ -10,6 +10,15 @@
 
 #include "Macros/Macros.hpp"
 #include "Window/Window.hpp"
+
+#include "Graphics/DepthTest.hpp"
+#include "Graphics/StencilTest.hpp"
+#include "Graphics/Comparison.hpp"
+#include "Graphics/BlendState.hpp"
+#include "Graphics/Viewport.hpp"
+#include "Graphics/ShaderType.hpp"
+
+//*
 #include "d3d12/D3D12Device.hpp"
 #include "d3d12/D3D12State.hpp"
 #include "d3d12/D3D12InputLayout.hpp"
@@ -18,21 +27,16 @@
 #include "d3d12/D3D12CommandList.hpp"
 #include "d3d12/D3D12Resource.hpp"
 #include "d3d12/D3D12RenderTarget.hpp"
-#include "Graphics/DepthTest.hpp"
-#include "Graphics/StencilTest.hpp"
-#include "Graphics/Comparison.hpp"
-#include "Graphics/BlendState.hpp"
-#include "Graphics/Viewport.hpp"
-#include "Graphics/ShaderType.hpp"
-//#include "Vulkan/VulkanDevice.hpp"
-//#include "Vulkan/VulkanCommandList.hpp"
-//#include "Vulkan/VulkanState.hpp"
-//#include "Vulkan/VulkanShader.hpp"
-//#include "Vulkan/VulkanRenderPass.hpp"
-//#include "Vulkan/VulkanRootSignature.hpp"
-//
-//#include "Vulkan/VulkanSwapChain.hpp"
+/*/
+#include "Vulkan/VulkanDevice.hpp"
+#include "Vulkan/VulkanCommandList.hpp"
+#include "Vulkan/VulkanState.hpp"
+#include "Vulkan/VulkanShader.hpp"
+#include "Vulkan/VulkanRenderPass.hpp"
+#include "Vulkan/VulkanRootSignature.hpp"
 
+#include "Vulkan/VulkanSwapChain.hpp"
+//*/
 #include "Graphics/CommandQueueFactory.hpp"
 #include "Graphics/SwapChainFactory.hpp"
 #include "Graphics/FenceFactory.hpp"
@@ -74,6 +78,12 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+#include <vector>
+#include "NextGenGraphics/FrameGraph.hpp"
+#define PUSHIN(a)	in.push_back((Resource*)(a));
+#define PUSHOUT(a)	out.push_back((Resource*)(a));
+#define CLEARINOUT()	in.clear(); out.clear();
+#include <cstdio>
 int WINAPI WinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine,
@@ -141,7 +151,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		CommandLists.SetScissorRectangle(ViewportObj);
 		CommandLists.GetD3D12GraphicsCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, RENDERTARGET);
-		CommandLists.BindRenderTarget(0, static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)));
+		CommandLists.BindRenderTarget(0, SwapChainObj.GetBackBufferView(CurrentFrame));
 		CommandLists.DrawPrimitive(6);
 		static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, PRESENT);
 		CommandLists.End();

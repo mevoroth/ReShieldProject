@@ -18,9 +18,9 @@
 #include "Graphics/Viewport.hpp"
 #include "Graphics/ShaderType.hpp"
 
-//*
+/*
 #include "d3d12/D3D12Device.hpp"
-#include "d3d12/D3D12State.hpp"
+#include "d3d12/D3D12Pipeline.hpp"
 #include "d3d12/D3D12InputLayout.hpp"
 #include "d3d12/D3D12ShaderFactory.hpp"
 #include "d3d12/D3D12Shader.hpp"
@@ -30,7 +30,7 @@
 /*/
 #include "Vulkan/VulkanDevice.hpp"
 #include "Vulkan/VulkanCommandList.hpp"
-#include "Vulkan/VulkanState.hpp"
+#include "Vulkan/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan/VulkanRootSignature.hpp"
@@ -43,6 +43,8 @@
 #include "Graphics/Fence.hpp"
 #include "Graphics/CommandQueue.hpp"
 #include "Graphics/SwapChain.hpp"
+#include "Graphics/RootSignature.hpp"
+#include "Graphics/RootSignatureFactory.hpp"
 
 #include "File/FilePath.hpp"
 
@@ -92,11 +94,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	Window WindowObj(hInstance, nCmdShow, "Vulkan", "Vulkan", 1280, 720);
 	WindowObj.Create(WindowProc);
 
-	new D3D12ShaderFactory();
-	D3D12Device::Initialize();
-	D3D12Device DeviceObj(0);
+	//new D3D12ShaderFactory();
+	//D3D12Device::Initialize();
+	//D3D12Device DeviceObj(0);
 
-	//VulkanDevice DeviceObj(WindowObj);
+	VulkanDevice DeviceObj(WindowObj);
 	CommandQueue& DirectCommandQueue = *CreateCommandQueue(DeviceObj, 2);
 	SwapChain& SwapChainObj = *CreateSwapChain(DeviceObj, WindowObj, DirectCommandQueue);
 
@@ -104,40 +106,40 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	Viewport ViewportObj(0, 0, 1280, 720);
 
-	Shader* VS = D3D12ShaderFactory::Get()->CreateVertexShader("PostProcess", "postprocess.vs.hlsl");
-	Shader* PS = D3D12ShaderFactory::Get()->CreatePixelShader("DefaultPostProcess", "defaultpostprocess.ps.hlsl");
+	//Shader* VS = D3D12ShaderFactory::Get()->CreateVertexShader("PostProcess", "postprocess.vs.hlsl");
+	//Shader* PS = D3D12ShaderFactory::Get()->CreatePixelShader("DefaultPostProcess", "defaultpostprocess.ps.hlsl");
 	
-	//VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.hlsl", VS);
-	//VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "defaultpostprocess.ps.hlsl", PS);
-	
-	InputLayout::VertexDataType Vertices[] = {
-		InputLayout::POSITION_T
-	};
-	D3D12InputLayout InputLayoutObj(Vertices, ETERNAL_ARRAYSIZE(Vertices));
-	DepthTest DepthTestObj;
-	StencilTest StencilTestObj;
-	BlendState BlendStates[] = {
-		BlendState(BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD, BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD),
-		BlendState(),
-		BlendState(),
-		BlendState(),
-		BlendState(),
-		BlendState(),
-		BlendState(),
-		BlendState()
-	};
+	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.hlsl", VS);
+	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "defaultpostprocess.ps.hlsl", PS);
 
-	D3D12State StateObj(DeviceObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
-
-	D3D12CommandList CommandLists(DeviceObj, DirectCommandQueue, StateObj);
-	//VulkanCommandList CommandLists[] = {
-	//	VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
-	//	VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
+	RootSignature& RootSignatureObj = *CreateRootSignature(DeviceObj);
+	//InputLayout::VertexDataType Vertices[] = {
+	//	InputLayout::POSITION_T
+	//};
+	//D3D12InputLayout InputLayoutObj(Vertices, ETERNAL_ARRAYSIZE(Vertices));
+	//DepthTest DepthTestObj;
+	//StencilTest StencilTestObj;
+	//BlendState BlendStates[] = {
+	//	BlendState(BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD, BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState()
 	//};
 
+	//D3D12Pipeline PipelineObj(DeviceObj, RootSignatureObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
+
+	//D3D12CommandList CommandLists(DeviceObj, DirectCommandQueue, PipelineObj);
+	VulkanCommandList CommandLists[] = {
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
+		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
+	};
+
 	Fence& FenceObj = *CreateFence(DeviceObj, 2);
-	//VulkanRootSignature RootSignatureObj(DeviceObj);
-	//VulkanState StateObj(DeviceObj, RootSignatureObj, *static_cast<VulkanSwapChain&>(SwapChainObj).GetMainRenderPass(), VS, PS, ViewportObj);
+	VulkanPipeline PipelineObj(DeviceObj, RootSignatureObj, *static_cast<VulkanSwapChain&>(SwapChainObj).GetMainRenderPass(), VS, PS, ViewportObj);
 
 	static int i = 0;
 	for (;;)
@@ -146,22 +148,22 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		FenceObj.Reset(DeviceObj);
 		uint32_t CurrentFrame = SwapChainObj.AcquireFrame(DeviceObj, FenceObj);
 		DirectCommandQueue.Reset(CurrentFrame);
-		CommandLists.Begin(*DirectCommandQueue.GetCommandAllocator(CurrentFrame), StateObj);
-		CommandLists.SetViewport(ViewportObj);
-		CommandLists.SetScissorRectangle(ViewportObj);
-		CommandLists.GetD3D12GraphicsCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, RENDERTARGET);
-		CommandLists.BindRenderTarget(0, SwapChainObj.GetBackBufferView(CurrentFrame));
-		CommandLists.DrawPrimitive(6);
-		static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, PRESENT);
-		CommandLists.End();
-		//CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), StateObj, *static_cast<VulkanSwapChain&>(SwapChainObj).GetMainRenderPass());
-		//CommandLists[CurrentFrame].DrawPrimitive(6);
-		//CommandLists[CurrentFrame].End();
+		//CommandLists.Begin(*DirectCommandQueue.GetCommandAllocator(CurrentFrame), PipelineObj);
+		//CommandLists.SetViewport(ViewportObj);
+		//CommandLists.SetScissorRectangle(ViewportObj);
+		//CommandLists.GetD3D12GraphicsCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		//static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, RENDERTARGET);
+		//CommandLists.BindRenderTarget(0, SwapChainObj.GetBackBufferView(CurrentFrame));
+		//CommandLists.DrawPrimitive(6);
+		//static_cast<D3D12RenderTarget&>(SwapChainObj.GetBackBuffer(CurrentFrame)).Transition(CommandLists, PRESENT);
+		//CommandLists.End();
+		CommandLists[CurrentFrame].Begin(SwapChainObj.GetBackBuffer(CurrentFrame), PipelineObj, *static_cast<VulkanSwapChain&>(SwapChainObj).GetMainRenderPass());
+		CommandLists[CurrentFrame].DrawPrimitive(6);
+		CommandLists[CurrentFrame].End();
 		FenceObj.Reset(DeviceObj);
 		CommandList* VulkanCommandLists[] = {
-			//&CommandLists[CurrentFrame]
-			&CommandLists
+			&CommandLists[CurrentFrame]
+			//&CommandLists
 		};
 		DirectCommandQueue.Submit(CurrentFrame, VulkanCommandLists, ETERNAL_ARRAYSIZE(VulkanCommandLists), FenceObj, SwapChainObj);
 		FenceObj.Signal(DirectCommandQueue);

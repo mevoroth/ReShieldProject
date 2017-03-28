@@ -34,7 +34,7 @@
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan/VulkanRootSignature.hpp"
-
+#include "Vulkan/VulkanResource.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 //*/
 #include "Graphics/CommandQueueFactory.hpp"
@@ -50,6 +50,9 @@
 
 //#include <dxgi1_4.h>
 #include <vector>
+
+#include "NextGenGraphics/FrameGraph.hpp"
+#include "Vulkan/VulkanHeap.hpp"
 
 using namespace ReShield;
 using namespace Eternal::Core;
@@ -111,6 +114,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	
 	VulkanShader VS(DeviceObj, "PostProcessVS", "postprocess.vs.hlsl", VS);
 	VulkanShader PS(DeviceObj, "DefaultPostProcessPS", "defaultpostprocess.ps.hlsl", PS);
+	
+	VulkanHeap HeapTexture(DeviceObj, 1024 * 4, 2, true, false, false, false);
+	VulkanHeap HeapStaging(DeviceObj, 1024 * 4, 2, false, true, true, false);
+
+	VulkanResource TextureObj(DeviceObj, HeapTexture, 1024 * 4, STRUCTURED);
+	VulkanResource StagingObj(DeviceObj, HeapStaging, 1024 * 4, STRUCTURED);
 
 	RootSignature& RootSignatureObj = *CreateRootSignature(DeviceObj);
 	//InputLayout::VertexDataType Vertices[] = {
@@ -129,14 +138,29 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//	BlendState(),
 	//	BlendState()
 	//};
+	//D3D12InputLayout InputLayoutObj(Vertices, ETERNAL_ARRAYSIZE(Vertices));
+	//DepthTest DepthTestObj;
+	//StencilTest StencilTestObj;
+	//BlendState BlendStates[] = {
+	//	BlendState(BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD, BlendState::ONE, BlendState::ZERO, BlendState::OP_ADD),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState(),
+	//	BlendState()
+	//};
 
-	//D3D12Pipeline PipelineObj(DeviceObj, RootSignatureObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
+	//D3D12State StateObj(DeviceObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
 
-	//D3D12CommandList CommandLists(DeviceObj, DirectCommandQueue, PipelineObj);
+	//D3D12CommandList CommandLists(DeviceObj, DirectCommandQueue, StateObj);
 	VulkanCommandList CommandLists[] = {
 		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(0)),
 		VulkanCommandList(DeviceObj, *DirectCommandQueue.GetCommandAllocator(1))
 	};
+
+	//D3D12Pipeline PipelineObj(DeviceObj, RootSignatureObj, InputLayoutObj, VS, PS, DepthTestObj, StencilTestObj, BlendStates, /*SwapChainObj.GetBackBuffer(0),*/ 1, nullptr, 0);
 
 	Fence& FenceObj = *CreateFence(DeviceObj, 2);
 	VulkanPipeline PipelineObj(DeviceObj, RootSignatureObj, *static_cast<VulkanSwapChain&>(SwapChainObj).GetMainRenderPass(), VS, PS, ViewportObj);

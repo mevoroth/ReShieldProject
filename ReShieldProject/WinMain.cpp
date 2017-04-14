@@ -127,7 +127,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	VulkanResource StagingObj(DeviceObj, HeapStaging, 1024 * 4, BUFFER_TRANSFER_READ);
 
 	//TextureObj.CreateView(DeviceObj, )
-
 	RootSignature& RootSignatureObj = *CreateRootSignature(DeviceObj);
 	VulkanDescriptorHeap DescriptorHeapObj(DeviceObj, STRUCTURED_BUFFER, 2, (RootSignatureAccess)(ROOT_SIGNATURE_VS | ROOT_SIGNATURE_PS));
 	DescriptorHeap* DescriptorHeaps[]

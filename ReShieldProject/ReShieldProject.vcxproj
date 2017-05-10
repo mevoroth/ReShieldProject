@@ -88,7 +88,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ETERNAL_USE_DXMATH_TYPES;FBXSDK_SHARED;ETERNAL_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12;ETERNAL_USE_DXMATH_TYPES;FBXSDK_SHARED;ETERNAL_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>sal.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -96,7 +96,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\lib\vs2015\x64\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;//d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vulkan-1.lib;shaderc_combined.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vulkan-1.lib;shaderc_combined.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

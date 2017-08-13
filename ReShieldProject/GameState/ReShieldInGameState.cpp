@@ -46,7 +46,11 @@ namespace ReShield
 
 	void ReShieldInGameState::Begin()
 	{
-		GetSharedData()->GraphicGameObjects = (std::vector<GraphicGameObject*>*)Eternal::SaveSystem::SaveSystem::Get()->Load("save.sav");
+		vector<GraphicGameObject*>* LoadedObjects = (std::vector<GraphicGameObject*>*)Eternal::SaveSystem::SaveSystem::Get()->Load("save.sav");
+		vector<GraphicGameObject*>& ActiveQueue = GetSharedData()->GetActiveQueue();
+		ActiveQueue.insert(ActiveQueue.end(), LoadedObjects->begin(), LoadedObjects->end());
+		delete LoadedObjects;
+		LoadedObjects = nullptr;
 
 		GetSharedData()->Camera = new CameraGameObject();
 		PerspectiveCamera* Camera = new PerspectiveCamera(1000.f, 1.f, 90.0f, 16.0f/9.0f);
@@ -204,15 +208,15 @@ namespace ReShield
 		Vector3 Position = CameraTransform.GetTranslation();
 		Vector4 Rotation = CameraTransform.GetRotation();
 
-		ImGui::Begin("Debug camera position");
-		//ImGui::Text("Position: [%f, %f, %f]", Position.x, Position.y, Position.z);
-		ImGui::InputFloat3("Position", &Position.x);
-		ImGui::InputFloat4("Rotation", &Rotation.x);
-		ImGui::Text("Forward: [%f %f %f]", Forward.x, Forward.y, Forward.z);
-		ImGui::Text("Right: [%f %f %f]", Right.x, Right.y, Right.z);
-		ImGui::Text("Up: [%f %f %f]", Up.x, Up.y, Up.z);
-		ImGui::Text("Speed: [%f, %f, %f]", Speed.x, Speed.y, Speed.z);
-		ImGui::End();
+		//ImGui::Begin("Debug camera position");
+		////ImGui::Text("Position: [%f, %f, %f]", Position.x, Position.y, Position.z);
+		//ImGui::InputFloat3("Position", &Position.x);
+		//ImGui::InputFloat4("Rotation", &Rotation.x);
+		//ImGui::Text("Forward: [%f %f %f]", Forward.x, Forward.y, Forward.z);
+		//ImGui::Text("Right: [%f %f %f]", Right.x, Right.y, Right.z);
+		//ImGui::Text("Up: [%f %f %f]", Up.x, Up.y, Up.z);
+		//ImGui::Text("Speed: [%f, %f, %f]", Speed.x, Speed.y, Speed.z);
+		//ImGui::End();
 
 		CameraTransform.SetTranslation(Position);
 
@@ -221,12 +225,12 @@ namespace ReShield
 		Vector3 LightColor = GetSharedData()->Lights->GetLightComponent()->GetLight()->GetColor();
 		Vector3 LightPosition = GetSharedData()->Lights->GetTransformComponent()->GetTransform().GetTranslation();
 
-		ImGui::Begin("Light settings");
-		ImGui::InputFloat3("Light position", &LightPosition.x);
-		ImGui::SliderFloat("Light distance", &LightDistance, 0.001f, 1000.0f);
-		ImGui::SliderFloat("Light intensity", &LightIntensity, 0.001f, 50.0f);
-		ImGui::ColorEdit3("Light color", &LightColor.x);
-		ImGui::End();
+		//ImGui::Begin("Light settings");
+		//ImGui::InputFloat3("Light position", &LightPosition.x);
+		//ImGui::SliderFloat("Light distance", &LightDistance, 0.001f, 1000.0f);
+		//ImGui::SliderFloat("Light intensity", &LightIntensity, 0.001f, 50.0f);
+		//ImGui::ColorEdit3("Light color", &LightColor.x);
+		//ImGui::End();
 
 		GetSharedData()->Lights->GetTransformComponent()->GetTransform().SetTranslation(LightPosition);
 		GetSharedData()->Lights->GetLightComponent()->GetLight()->SetDistance(LightDistance);
@@ -236,12 +240,12 @@ namespace ReShield
 		// DEBUG
 		float Alpha = 1.0f - abs(fmod(TotalTime / 2.0f, 2.0f) - 1.0f);
 		Vector3 Pos = Lerp(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 1000.0f), Alpha);
-		ImGui::Begin("Debug");
-		ImGui::Text("Elapsed Time: [%f]", TotalTime);
-		ImGui::Text("Lerp Alpha: [%f]", Alpha);
-		ImGui::Text("Instance 0: [%f %f %f]", Pos.x, Pos.y, Pos.z);
-		ImGui::End();
-		(*GetSharedData()->GraphicGameObjects)[0]->GetInstance(0)->GetTransformComponent()->GetTransform().SetTranslation(Pos);
+		//ImGui::Begin("Debug");
+		//ImGui::Text("Elapsed Time: [%f]", TotalTime);
+		//ImGui::Text("Lerp Alpha: [%f]", Alpha);
+		//ImGui::Text("Instance 0: [%f %f %f]", Pos.x, Pos.y, Pos.z);
+		//ImGui::End();
+		//GetSharedData()->GraphicGameObjects[0]->GetInstance(0)->GetTransformComponent()->GetTransform().SetTranslation(Pos);
 	}
 	GameState* ReShieldInGameState::NextState()
 	{

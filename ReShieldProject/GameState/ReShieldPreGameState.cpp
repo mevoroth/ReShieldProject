@@ -18,7 +18,7 @@ namespace ReShield
 	}
 	void ReShieldPreGameState::Update()
 	{
-		Log::Get()->Write(Log::Info, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
+		//Log::Get()->Write(Log::Info, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
 		if (Eternal::Input::Input::Get()->IsDown(Eternal::Input::Input::ESC))
 		{
 			_NextState = _MainMenuState;

@@ -17,7 +17,9 @@ namespace ReShield
 	}
 	void ReShieldMainMenuState::Update()
 	{
-		Log::Get()->Write(Log::Info, ReShield::ReShieldGame, "[ReShieldMainMenuState::Update]");
+		using namespace Eternal;
+
+		LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldMainMenuState::Update]");
 		if (Eternal::Input::Input::Get()->IsDown(Eternal::Input::Input::ESC))
 		{
 			_NextState = nullptr;

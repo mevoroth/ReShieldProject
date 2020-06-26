@@ -136,7 +136,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		{
 		}
 
-		virtual bool CreateTexture(_In_ const RawTextureData& TextureData, _Out_ Texture*& OutTexture) override
+		virtual bool CreateTexture(_Inout_ RawTextureData& TextureData, _Out_ Texture*& OutTexture) override
 		{
 			//////////////////////////////////////////////////////////////////////////
 			// CPU Buffer
@@ -160,7 +160,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			vk::MemoryAllocateInfo StagingBufferMemoryAllocateInfo(
 				StagingBufferMemoryRequirements.size,
 				static_cast<VulkanDevice&>(Context.GetDevice()).FindBestMemoryTypeIndex(
-					uint32_t(StagingBufferMemoryRequirements.size),
+					uint32_t(StagingBufferMemoryRequirements.memoryTypeBits),
 					Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
 				)
 			);
@@ -183,13 +183,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
 				vk::ImageType::e2D,
 				vk::Format::eR8G8B8A8Unorm,
 				vk::Extent3D(TextureData.Width, TextureData.Height, 1),
-				1, 0,
+				1, 1,
 				vk::SampleCountFlagBits::e1,
 				vk::ImageTiling::eOptimal,
 				vk::ImageUsageFlagBits::eStorage,
 				vk::SharingMode::eExclusive,
 				0, nullptr,
-				vk::ImageLayout::eTransferDstOptimal
+				vk::ImageLayout::eUndefined
 			);
 
 			Vulkan::VerifySuccess(VulkanDeviceObj.createImage(&TextureInfo, nullptr, &Texture));
@@ -199,7 +199,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			vk::MemoryAllocateInfo TextureMemoryAllocateInfo(
 				TextureMemoryRequirements.size,
 				static_cast<VulkanDevice&>(Context.GetDevice()).FindBestMemoryTypeIndex(
-					uint32_t(StagingBufferMemoryRequirements.size),
+					uint32_t(StagingBufferMemoryRequirements.memoryTypeBits),
 					Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
 				)
 			);
@@ -207,103 +207,74 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			Vulkan::VerifySuccess(VulkanDeviceObj.allocateMemory(&TextureMemoryAllocateInfo, nullptr, &TextureMemory));
 			VulkanDeviceObj.bindImageMemory(Texture, TextureMemory, 0);
 
-			//Context.
+			vk::ImageMemoryBarrier TextureMemoryBarrier(
+				vk::AccessFlagBits(),
+				vk::AccessFlagBits::eTransferWrite,
+				vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eTransferDstOptimal,
+				0, 0,
+				Texture,
+				vk::ImageSubresourceRange(
+					vk::ImageAspectFlagBits::eColor,
+					0, 1, 1
+				)
+			);
 
-			//// Setup buffer copy regions for each mip level
-			//std::vector<VkBufferImageCopy> buffer_copy_regions;
-			//for (uint32_t i = 0; i < texture.mip_levels; i++)
-			//{
-			//	ktx_size_t        offset;
-			//	KTX_error_code    result                           = ktxTexture_GetImageOffset(ktx_texture, i, 0, 0, &offset);
-			//	VkBufferImageCopy buffer_copy_region               = {};
-			//	buffer_copy_region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-			//	buffer_copy_region.imageSubresource.mipLevel       = i;
-			//	buffer_copy_region.imageSubresource.baseArrayLayer = 0;
-			//	buffer_copy_region.imageSubresource.layerCount     = 1;
-			//	buffer_copy_region.imageExtent.width               = ktx_texture->baseWidth >> i;
-			//	buffer_copy_region.imageExtent.height              = ktx_texture->baseHeight >> i;
-			//	buffer_copy_region.imageExtent.depth               = 1;
-			//	buffer_copy_region.bufferOffset                    = offset;
-			//	buffer_copy_regions.push_back(buffer_copy_region);
-			//}
+			CmdList.pipelineBarrier(
+				vk::PipelineStageFlagBits::eHost,
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::DependencyFlagBits(),
+				0, static_cast<vk::MemoryBarrier*>(nullptr),
+				0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
+				1, &TextureMemoryBarrier
+			);
 
-			//VkCommandBuffer copy_command = device->create_command_buffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+			vk::BufferImageCopy TextureRegion(
+				0ull, TextureData.Width * 4, TextureData.Height,
+				vk::ImageSubresourceLayers(
+					vk::ImageAspectFlagBits::eColor,
+					0, 0, 1
+				),
+				vk::Offset3D(),
+				vk::Extent3D(TextureData.Width, TextureData.Height, TextureData.Depth)
+			);
 
-			//// Image memory barriers for the texture image
+			CmdList.copyBufferToImage(
+				StagingBuffer,
+				Texture,
+				vk::ImageLayout::eTransferDstOptimal,
+				1, &TextureRegion
+			);
 
-			//// The sub resource range describes the regions of the image that will be transitioned using the memory barriers below
-			//VkImageSubresourceRange subresource_range = {};
-			//// Image only contains color data
-			//subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			//// Start at first mip level
-			//subresource_range.baseMipLevel = 0;
-			//// We will transition on all mip levels
-			//subresource_range.levelCount = texture.mip_levels;
-			//// The 2D texture only has one layer
-			//subresource_range.layerCount = 1;
+			TextureMemoryBarrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
+			TextureMemoryBarrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
+			TextureMemoryBarrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
+			TextureMemoryBarrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
-			//// Transition the texture image layout to transfer target, so we can safely copy our buffer data to it.
-			//VkImageMemoryBarrier image_memory_barrier = vkb::initializers::image_memory_barrier();
-
-			//image_memory_barrier.image            = texture.image;
-			//image_memory_barrier.subresourceRange = subresource_range;
-			//image_memory_barrier.srcAccessMask    = 0;
-			//image_memory_barrier.dstAccessMask    = VK_ACCESS_TRANSFER_WRITE_BIT;
-			//image_memory_barrier.oldLayout        = VK_IMAGE_LAYOUT_UNDEFINED;
-			//image_memory_barrier.newLayout        = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-
-			//// Insert a memory dependency at the proper pipeline stages that will execute the image layout transition
-			//// Source pipeline stage is host write/read exection (VK_PIPELINE_STAGE_HOST_BIT)
-			//// Destination pipeline stage is copy command exection (VK_PIPELINE_STAGE_TRANSFER_BIT)
-			//vkCmdPipelineBarrier(
-			//	copy_command,
-			//	VK_PIPELINE_STAGE_HOST_BIT,
-			//	VK_PIPELINE_STAGE_TRANSFER_BIT,
-			//	0,
-			//	0, nullptr,
-			//	0, nullptr,
-			//	1, &image_memory_barrier);
-
-			//// Copy mip levels from staging buffer
-			//vkCmdCopyBufferToImage(
-			//	copy_command,
-			//	staging_buffer,
-			//	texture.image,
-			//	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			//	static_cast<uint32_t>(buffer_copy_regions.size()),
-			//	buffer_copy_regions.data());
-
-			//// Once the data has been uploaded we transfer to the texture image to the shader read layout, so it can be sampled from
-			//image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			//image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			//image_memory_barrier.oldLayout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			//image_memory_barrier.newLayout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-			//// Insert a memory dependency at the proper pipeline stages that will execute the image layout transition
-			//// Source pipeline stage stage is copy command exection (VK_PIPELINE_STAGE_TRANSFER_BIT)
-			//// Destination pipeline stage fragment shader access (VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-			//vkCmdPipelineBarrier(
-			//	copy_command,
-			//	VK_PIPELINE_STAGE_TRANSFER_BIT,
-			//	VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			//	0,
-			//	0, nullptr,
-			//	0, nullptr,
-			//	1, &image_memory_barrier);
-
-			//// Store current layout for later reuse
-			//texture.image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-			//device->flush_command_buffer(copy_command, queue, true);
+			CmdList.pipelineBarrier(
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::PipelineStageFlagBits::eFragmentShader,
+				vk::DependencyFlagBits(),
+				0, static_cast<vk::MemoryBarrier*>(nullptr),
+				0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
+				1, &TextureMemoryBarrier
+			);
 
 			//// Clean up staging resources
 			//vkFreeMemory(get_device().get_handle(), staging_memory, nullptr);
 			//vkDestroyBuffer(get_device().get_handle(), staging_buffer, nullptr);
 
-			__debugbreak();
+			TextureData.Release();
 
-			return false;
+			return true;
 		}
+
+		void HACKSetCommandList(const vk::CommandBuffer& InCmdList)
+		{
+			CmdList = InCmdList;
+		}
+
+		vk::CommandBuffer CmdList;
 	} DebugVulkanCreateGpuResourceCB(*Context);
 
 	TextureFactoryCreateInformation TexFactoryCreateInformation =
@@ -392,10 +363,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	vk::CommandBufferAllocateInfo CommandBufferInfo(
 		VulkanCommandPool,
 		vk::CommandBufferLevel::ePrimary,
-		1
+		2
 	);
-	vk::CommandBuffer VulkanCommandBuffer;
-	Vulkan::VerifySuccess(DeviceObj.allocateCommandBuffers(&CommandBufferInfo, &VulkanCommandBuffer));
+	vk::CommandBuffer CommandBuffers[2];
+	Vulkan::VerifySuccess(DeviceObj.allocateCommandBuffers(&CommandBufferInfo, CommandBuffers));
+	vk::CommandBuffer& VulkanCommandBuffer = CommandBuffers[0];
 
 	std::vector<vk::Semaphore> AcquireSemaphores;
 	vk::SemaphoreCreateInfo SemaphoreInfo;
@@ -426,13 +398,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	vk::Buffer PerFrameConstantBuffer;
 	Vulkan::VerifySuccess(DeviceObj.createBuffer(&BufferInfo, nullptr, &PerFrameConstantBuffer));
 
-	GraphicsMemoryFlag MemoryFlag = GraphicsMemoryFlag::MEMORY_FLAG_GPU | GraphicsMemoryFlag::MEMORY_FLAG_MAPPABLE;
+	GraphicsMemoryFlag MemoryFlag = GraphicsMemoryFlag::MEMORY_FLAG_MAPPABLE;
 
 	vk::MemoryRequirements BufferMemoryRequirements = DeviceObj.getBufferMemoryRequirements(PerFrameConstantBuffer);
 	vk::MemoryAllocateInfo MemoryInfo(
 		sizeof(PerFrame),
 		static_cast<VulkanDevice&>(Context->GetDevice()).FindBestMemoryTypeIndex(
-			uint32_t(BufferMemoryRequirements.size * 2),
+			uint32_t(BufferMemoryRequirements.memoryTypeBits),
 			Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
 		)
 	);
@@ -480,7 +452,17 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		Timer->Update();
 		ElapsedTime += Timer->GetDeltaTimeSeconds();
 
+		vk::CommandBufferBeginInfo CommandBufferBegin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
+		bool HasRequests = TexFactory.HasRequests();
+
+		DebugVulkanCreateGpuResourceCB.HACKSetCommandList(CommandBuffers[1]);
+
+		if (HasRequests)
+			CommandBuffers[1].begin(&CommandBufferBegin);
 		TexFactory.ProcessRequests();
+		if (HasRequests)
+			CommandBuffers[1].end();
 
 		uint32_t ImageIndex;
 		vk::Semaphore& CurrentSemaphore = AcquireSemaphores[i % 2];
@@ -501,7 +483,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			Vulkan::ConvertViewportToRect2D(Context->GetMainViewport())
 		);
 		
-		vk::CommandBufferBeginInfo CommandBufferBegin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 		Vulkan::VerifySuccess(VulkanCommandBuffer.begin(&CommandBufferBegin));
 
 		const vk::Image& BackBufferImage = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferImages()[ImageIndex];
@@ -593,11 +574,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 		VulkanCommandBuffer.end();
 
+		vk::CommandBuffer SubmitCmdList[2] = {
+			CommandBuffers[1],
+			CommandBuffers[0]
+		};
+
 		vk::PipelineStageFlags WaitDestStageMask = vk::PipelineStageFlagBits::eAllGraphics;
 		vk::SubmitInfo SubmitInfo(
 			1, &CurrentSemaphore,
 			&WaitDestStageMask,
-			1, &VulkanCommandBuffer,
+			HasRequests ? 2 : 1, HasRequests ? SubmitCmdList : &VulkanCommandBuffer,
 			1, &ReleaseSemaphore
 		);
 		Vulkan::VerifySuccess(VulkanQueue.submit(1, &SubmitInfo, SubmitFence));

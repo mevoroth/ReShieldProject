@@ -113,6 +113,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
+	while (true);
+
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
 	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
@@ -186,7 +188,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 				1, 1,
 				vk::SampleCountFlagBits::e1,
 				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eStorage,
+				vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 				vk::SharingMode::eExclusive,
 				0, nullptr,
 				vk::ImageLayout::eUndefined
@@ -216,7 +218,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 				Texture,
 				vk::ImageSubresourceRange(
 					vk::ImageAspectFlagBits::eColor,
-					0, 1, 1
+					0, 1,
+					0, 1
 				)
 			);
 
@@ -230,7 +233,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			);
 
 			vk::BufferImageCopy TextureRegion(
-				0ull, TextureData.Width * 4, TextureData.Height,
+				0ull, TextureData.Width, TextureData.Height,
 				vk::ImageSubresourceLayers(
 					vk::ImageAspectFlagBits::eColor,
 					0, 0, 1
@@ -308,20 +311,20 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		BlendStateNone
 	};
 
-	vector<View*> Views = {
-		static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferViews()[0]
-	};
+	const vector<View*>& BackBufferViews = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferViews();
 
-	RenderPass* RenderPasses[2];
-	for (int RenderPassIndex = 0; RenderPassIndex < 2; ++RenderPassIndex)
+	vector<RenderPass*> RenderPasses;
+	RenderPasses.resize(BackBufferViews.size());
+
+	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
-		vector<View*> Views = {
-			static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferViews()[RenderPassIndex]
+		vector<View*> CurrentViews = {
+			BackBufferViews[RenderPassIndex]
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
 			Context->GetMainViewport(),
-			Views,
+			CurrentViews,
 			BlendStates
 		);
 

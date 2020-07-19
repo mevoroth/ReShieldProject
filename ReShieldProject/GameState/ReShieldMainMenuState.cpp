@@ -2,7 +2,6 @@
 
 #include "ReShield.hpp"
 
-#include "Macros/Macros.hpp"
 #include "Input/Input.hpp"
 
 #include "GameState/CoreState.hpp"

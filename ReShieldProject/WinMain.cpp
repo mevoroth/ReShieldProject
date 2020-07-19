@@ -8,7 +8,6 @@
 #include "GameState/ReShieldPreGameState.hpp"
 #include "Data/ReShieldData.hpp"
 
-#include "Macros/Macros.hpp"
 #include "Window/Window.hpp"
 
 #include "Graphics/DepthTest.hpp"
@@ -62,6 +61,7 @@
 #include "Resources/TextureFactory.hpp"
 #include "Resources/ImmediateTextureFactory.hpp"
 #include "Import/tga/ImportTga.hpp"
+#include "DebugTools/Debug.hpp"
 
 using namespace ReShield;
 using namespace Eternal::Core;
@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	while (true);
+	Eternal::DebugTools::WaitForDebugger(true);
 
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::VULKAN);

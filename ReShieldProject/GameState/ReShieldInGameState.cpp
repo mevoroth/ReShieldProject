@@ -1,6 +1,5 @@
 #include "GameState/ReShieldInGameState.hpp"
 
-#include <vector>
 #include "SaveSystem/SaveSystem.hpp"
 
 #include "Types/Types.hpp"

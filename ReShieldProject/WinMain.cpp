@@ -113,7 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	Eternal::DebugTools::WaitForDebugger(true);
+	Eternal::DebugTools::WaitForDebugger(false);
 
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::VULKAN);

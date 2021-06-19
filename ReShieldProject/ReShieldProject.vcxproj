@@ -69,8 +69,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.141.2\Include</IncludePath>
-    <LibraryPath>D:\Code\VulkanSDK\1.2.141.2\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Code\FBX\FBX SDK\2020.0.1\lib\vs2017\x64\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include</IncludePath>
+    <LibraryPath>D:\Code\VulkanSDK\1.2.176.1\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Code\FBX\FBX SDK\2020.0.1\lib\vs2017\x64\debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>D:\Code\VulkanSDK\1.2.176.1\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,6 +124,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>D:\Code\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -27,23 +27,23 @@
 #include "d3d12/D3D12Resource.hpp"
 #include "d3d12/D3D12RenderTarget.hpp"
 /*/
-#include "Vulkan/VulkanDevice.hpp"
-#include "Vulkan/VulkanCommandList.hpp"
-#include "Vulkan/VulkanPipeline.hpp"
+#include "Vulkan_deprecated/VulkanDevice.hpp"
+#include "Vulkan_deprecated/VulkanCommandList.hpp"
+#include "Vulkan_deprecated/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
-#include "Vulkan/VulkanRenderPass.hpp"
-#include "Vulkan/VulkanRootSignature.hpp"
-#include "Vulkan/VulkanResource.hpp"
-#include "Vulkan/VulkanSwapChain.hpp"
+#include "Vulkan_deprecated/VulkanRenderPass.hpp"
+#include "Vulkan_deprecated/VulkanRootSignature.hpp"
+#include "Vulkan_deprecated/VulkanResource.hpp"
+#include "Vulkan_deprecated/VulkanSwapChain.hpp"
 //*/
-#include "Graphics/CommandQueueFactory.hpp"
-#include "Graphics/SwapChainFactory.hpp"
-#include "Graphics/FenceFactory.hpp"
-#include "Graphics/Fence.hpp"
-#include "Graphics/CommandQueue.hpp"
-#include "Graphics/SwapChain.hpp"
-#include "Graphics/RootSignature.hpp"
-#include "Graphics/RootSignatureFactory.hpp"
+#include "Graphics_deprecated/CommandQueueFactory.hpp"
+#include "Graphics_deprecated/SwapChainFactory.hpp"
+#include "Graphics_deprecated/FenceFactory.hpp"
+#include "Graphics_deprecated/Fence.hpp"
+#include "Graphics_deprecated/CommandQueue.hpp"
+#include "Graphics_deprecated/SwapChain.hpp"
+#include "Graphics_deprecated/RootSignature.hpp"
+#include "Graphics_deprecated/RootSignatureFactory.hpp"
 
 #include "File/FilePath.hpp"
 
@@ -51,12 +51,12 @@
 #include <vector>
 
 #include "NextGenGraphics/FrameGraph.hpp"
-#include "Vulkan/VulkanHeap.hpp"
-#include "Vulkan/VulkanDescriptorHeap.hpp"
-#include "Vulkan/VulkanRootSignature.hpp"
-#include "Graphics/PipelineFactory.hpp"
-#include "Graphics/InputLayoutFactory.hpp"
-#include "Graphics/RenderPassFactory.hpp"
+#include "Vulkan_deprecated/VulkanHeap.hpp"
+#include "Vulkan_deprecated/VulkanDescriptorHeap.hpp"
+#include "Vulkan_deprecated/VulkanRootSignature.hpp"
+#include "Graphics_deprecated/PipelineFactory.hpp"
+#include "Graphics_deprecated/InputLayoutFactory.hpp"
+#include "Graphics_deprecated/RenderPassFactory.hpp"
 #include "Graphics/DepthStencil.hpp"
 #include "Resources/TextureFactory.hpp"
 #include "Resources/ImmediateTextureFactory.hpp"
@@ -94,11 +94,11 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 #include <vulkan/vulkan.hpp>
 #include "NextGenGraphics/FrameGraph.hpp"
-#include "Graphics/Format.hpp"
-#include "Graphics/View.hpp"
+#include "Graphics_deprecated/Format.hpp"
+#include "Graphics_deprecated/View.hpp"
 #include "Vulkan/VulkanUtils.hpp"
-#include "Vulkan/VulkanView.hpp"
-#include "Vulkan/VulkanRenderTarget.hpp"
+#include "Vulkan_deprecated/VulkanView.hpp"
+#include "Vulkan_deprecated/VulkanRenderTarget.hpp"
 #define PUSHIN(a)	in.push_back((Resource*)(a));
 #define PUSHOUT(a)	out.push_back((Resource*)(a));
 #define CLEARINOUT()	in.clear(); out.clear();

@@ -36,11 +36,11 @@
 #include "Vulkan_deprecated/VulkanResource.hpp"
 #include "Vulkan_deprecated/VulkanSwapChain.hpp"
 //*/
-#include "Graphics_deprecated/CommandQueueFactory.hpp"
+#include "Graphics/CommandQueueFactory.hpp"
 #include "Graphics_deprecated/SwapChainFactory.hpp"
 #include "Graphics_deprecated/FenceFactory.hpp"
 #include "Graphics_deprecated/Fence.hpp"
-#include "Graphics_deprecated/CommandQueue.hpp"
+#include "Graphics/CommandQueue.hpp"
 #include "Graphics_deprecated/SwapChain.hpp"
 #include "Graphics_deprecated/RootSignature.hpp"
 #include "Graphics_deprecated/RootSignatureFactory.hpp"
@@ -107,6 +107,8 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #include "NextGenGraphics/Context.hpp"
 #include "Time/TimeFactory.hpp"
 #include "Time/Time.hpp"
+#include "Log/LogFactory.hpp"
+#include "Log/Log.hpp"
 
 int WINAPI WinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -114,6 +116,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	int nCmdShow)
 {
 	Eternal::DebugTools::WaitForDebugger();
+
+	Eternal::Time::Time* Timer = Eternal::Time::CreateTime(Eternal::Time::TimeType::WIN);
+	Eternal::Log::Log* ConsoleLog = Eternal::Log::CreateLog(Eternal::Log::CONSOLE, "Eternal");
+	Eternal::Log::Log::Initialize(ConsoleLog);
 
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
@@ -472,8 +478,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	TextureFactoryRequest Request("Noise", ".\\noise.tga");
 	TexFactory.CreateRequest(Request);
-
-	Eternal::Time::Time* Timer = Eternal::Time::CreateTime(Eternal::Time::TimeType::WIN);
 
 	double ElapsedTime = 0.0;
 

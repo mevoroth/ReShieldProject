@@ -27,21 +27,21 @@
 #include "d3d12/D3D12Resource.hpp"
 #include "d3d12/D3D12RenderTarget.hpp"
 /*/
-#include "Vulkan_deprecated/VulkanDevice.hpp"
-#include "Vulkan_deprecated/VulkanCommandList.hpp"
+#include "Vulkan/VulkanDevice.hpp"
+#include "Vulkan/VulkanCommandList.hpp"
 #include "Vulkan_deprecated/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan_deprecated/VulkanRenderPass.hpp"
 #include "Vulkan_deprecated/VulkanRootSignature.hpp"
 #include "Vulkan_deprecated/VulkanResource.hpp"
-#include "Vulkan_deprecated/VulkanSwapChain.hpp"
+#include "Vulkan/VulkanSwapChain.hpp"
 //*/
 #include "Graphics/CommandQueueFactory.hpp"
-#include "Graphics_deprecated/SwapChainFactory.hpp"
+#include "Graphics/SwapChainFactory.hpp"
 #include "Graphics_deprecated/FenceFactory.hpp"
 #include "Graphics_deprecated/Fence.hpp"
 #include "Graphics/CommandQueue.hpp"
-#include "Graphics_deprecated/SwapChain.hpp"
+#include "Graphics/SwapChain.hpp"
 #include "Graphics_deprecated/RootSignature.hpp"
 #include "Graphics_deprecated/RootSignatureFactory.hpp"
 
@@ -94,7 +94,7 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 #include <vulkan/vulkan.hpp>
 #include "NextGenGraphics/FrameGraph.hpp"
-#include "Graphics_deprecated/Format.hpp"
+#include "Graphics/Format.hpp"
 #include "Graphics_deprecated/View.hpp"
 #include "Vulkan/VulkanUtils.hpp"
 #include "Vulkan_deprecated/VulkanView.hpp"
@@ -353,7 +353,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	vk::Device& DeviceObj = static_cast<VulkanDevice&>(Context->GetDevice()).GetVulkanDevice();
 	vk::PhysicalDevice& PhysDevice = static_cast<VulkanDevice&>(Context->GetDevice()).GetPhysicalDevice();
-	vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain())._Surface;
+	vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSurface();
 	vk::SwapchainKHR& SwapChainObj = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSwapChain();
 
 	vk::Bool32 CanPresent = false;

@@ -33,7 +33,6 @@
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan_deprecated/VulkanRenderPass.hpp"
 #include "Vulkan_deprecated/VulkanRootSignature.hpp"
-#include "Vulkan_deprecated/VulkanResource.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 //*/
 #include "Graphics/CommandQueueFactory.hpp"
@@ -99,12 +98,13 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #include "Vulkan/VulkanUtils.hpp"
 #include "Vulkan_deprecated/VulkanView.hpp"
 #include "Vulkan_deprecated/VulkanRenderTarget.hpp"
+#include "Vulkan/VulkanResource.hpp"
 #define PUSHIN(a)	in.push_back((Resource*)(a));
 #define PUSHOUT(a)	out.push_back((Resource*)(a));
 #define CLEARINOUT()	in.clear(); out.clear();
 #include <cstdio>
 #include "Graphics/Types.hpp"
-#include "Graphics/Context.hpp"
+#include "Graphics/GraphicsContext.hpp"
 #include "Time/TimeFactory.hpp"
 #include "Time/Time.hpp"
 #include "Log/LogFactory.hpp"
@@ -495,7 +495,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 		Vulkan::VerifySuccess(VulkanCommandBuffer.begin(&CommandBufferBegin));
 
-		const vk::Image& BackBufferImage = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferImages()[ImageIndex];
+		const vk::Image& BackBufferImage = static_cast<VulkanResource*>(Context->GetSwapChain().GetBackBuffers()[ImageIndex])->GetVulkanImage();
 
 		vk::ImageMemoryBarrier PresentToColorAttachmentOutput(
 			vk::AccessFlagBits::eColorAttachmentRead,

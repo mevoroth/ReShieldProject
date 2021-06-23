@@ -38,8 +38,8 @@
 //*/
 #include "Graphics/CommandQueueFactory.hpp"
 #include "Graphics/SwapChainFactory.hpp"
-#include "Graphics_deprecated/FenceFactory.hpp"
-#include "Graphics_deprecated/Fence.hpp"
+#include "Graphics/FenceFactory.hpp"
+#include "Graphics/Fence.hpp"
 #include "Graphics/CommandQueue.hpp"
 #include "Graphics/SwapChain.hpp"
 #include "Graphics_deprecated/RootSignature.hpp"
@@ -103,37 +103,16 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #define PUSHOUT(a)	out.push_back((Resource*)(a));
 #define CLEARINOUT()	in.clear(); out.clear();
 #include <cstdio>
-#include "NextGenGraphics/Types.hpp"
-#include "NextGenGraphics/Context.hpp"
+#include "Graphics/Types.hpp"
+#include "Graphics/Context.hpp"
 #include "Time/TimeFactory.hpp"
 #include "Time/Time.hpp"
 #include "Log/LogFactory.hpp"
 #include "Log/Log.hpp"
 
-int WINAPI WinMain(HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine,
-	int nCmdShow)
+void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 {
-	Eternal::DebugTools::WaitForDebugger();
-
-	Eternal::Time::Time* Timer = Eternal::Time::CreateTime(Eternal::Time::TimeType::WIN);
-	Eternal::Log::Log* ConsoleLog = Eternal::Log::CreateLog(Eternal::Log::CONSOLE, "Eternal");
-	Eternal::Log::Log::Initialize(ConsoleLog);
-
-	using namespace Eternal::Graphics;
-	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
-	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
-	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
-
-	FilePath::Register("..\\eternal-engine-shaders\\Shaders\\", FileType::SHADERS);
-	FilePath::Register("..\\assets\\textures\\", FileType::TEXTURES);
-
-	ImportTga* TgaImporter = new ImportTga();
-
 	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
-
-	GraphicsContext* Context = CreateGraphicsContext(ContextCreateInformation);
 
 	class DebugVulkanCreateGpuResource : public TextureFactoryCreateGpuResourceCallback
 	{
@@ -356,10 +335,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSurface();
 	vk::SwapchainKHR& SwapChainObj = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSwapChain();
 
-	vk::Bool32 CanPresent = false;
-	Vulkan::VerifySuccess(PhysDevice.getSurfaceSupportKHR(0, SwapChainSurface, &CanPresent));
-	ETERNAL_ASSERT(CanPresent);
-
 	vk::Queue VulkanQueue;
 	DeviceObj.getQueue(0, 0, &VulkanQueue);
 
@@ -503,7 +478,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		vk::Semaphore& CurrentSemaphore = AcquireSemaphores[i % 2];
 
 		Vulkan::VerifySuccess(DeviceObj.acquireNextImageKHR(SwapChainObj, UINT64_MAX, CurrentSemaphore, nullptr, &ImageIndex));
-		
+
 		if (i != 0)
 		{
 			DeviceObj.waitForFences(1, &SubmitFence, true, UINT64_MAX);
@@ -517,7 +492,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			static_cast<VulkanRenderPass&>(*RenderPasses[i % 2]).GetFrameBuffer(),
 			Vulkan::ConvertViewportToRect2D(Context->GetMainViewport())
 		);
-		
+
 		Vulkan::VerifySuccess(VulkanCommandBuffer.begin(&CommandBufferBegin));
 
 		const vk::Image& BackBufferImage = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferImages()[ImageIndex];
@@ -678,6 +653,66 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		}
 		i++;
 	}
+}
+
+void SampleRenderGeneric(GraphicsContext* Context)
+{
+	for (;;)
+	{
+		Context->GetSubmitFence().Wait(Context->GetDevice());
+		Context->GetSubmitFence().Reset(Context->GetDevice());
+
+		Context->GetSwapChain().Acquire(*Context);
+
+		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
+
+		CurrentCommandList->Begin();
+		CurrentCommandList->End();
+
+		Context->GetGraphicsQueue().SubmitCommandLists(
+			*Context,
+			&CurrentCommandList,
+			1
+		);
+
+		Context->GetSwapChain().Present(*Context);
+
+		delete CurrentCommandList;
+		
+		MSG Message = { 0 };
+		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&Message);
+			DispatchMessage(&Message);
+		}
+	}
+}
+
+int WINAPI WinMain(HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine,
+	int nCmdShow)
+{
+	Eternal::DebugTools::WaitForDebugger();
+
+	Eternal::Time::Time* Timer = Eternal::Time::CreateTime(Eternal::Time::TimeType::WIN);
+	Eternal::Log::Log* ConsoleLog = Eternal::Log::CreateLog(Eternal::Log::CONSOLE, "Eternal");
+	Eternal::Log::Log::Initialize(ConsoleLog);
+
+	using namespace Eternal::Graphics;
+	RenderSettings Settings(1600, 900, DeviceType::D3D12);
+	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
+	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
+
+	FilePath::Register("..\\eternal-engine-shaders\\Shaders\\", FileType::SHADERS);
+	FilePath::Register("..\\assets\\textures\\", FileType::TEXTURES);
+
+	ImportTga* TgaImporter = new ImportTga();
+
+	GraphicsContext* Context = CreateGraphicsContext(ContextCreateInformation);
+
+	//SampleRender(Context, Timer);
+	SampleRenderGeneric(Context);
 
 	DestroyGraphicsContext(Context);
 	

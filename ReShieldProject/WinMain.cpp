@@ -16,6 +16,7 @@
 #include "Graphics/BlendState.hpp"
 #include "Graphics/Viewport.hpp"
 #include "Graphics/ShaderType.hpp"
+#include "Graphics/ShaderFactory.hpp"
 
 /*
 #include "d3d12/D3D12Device.hpp"
@@ -29,7 +30,7 @@
 /*/
 #include "Vulkan/VulkanDevice.hpp"
 #include "Vulkan/VulkanCommandList.hpp"
-#include "Vulkan_deprecated/VulkanPipeline.hpp"
+#include "Vulkan/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan_deprecated/VulkanRootSignature.hpp"
@@ -55,7 +56,7 @@
 #include "Vulkan_deprecated/VulkanRootSignature.hpp"
 #include "Graphics_deprecated/PipelineFactory.hpp"
 #include "Graphics_deprecated/InputLayoutFactory.hpp"
-#include "Graphics_deprecated/RenderPassFactory.hpp"
+#include "Graphics/RenderPassFactory.hpp"
 #include "Graphics/DepthStencil.hpp"
 #include "Resources/TextureFactory.hpp"
 #include "Resources/ImmediateTextureFactory.hpp"
@@ -91,7 +92,7 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-#include <vulkan/vulkan.hpp>
+#include "Vulkan/VulkanHeader.hpp"
 #include "NextGenGraphics/FrameGraph.hpp"
 #include "Graphics/Format.hpp"
 #include "Graphics/View.hpp"
@@ -295,10 +296,6 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
 	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
-
-	vector<BlendState> BlendStates = {
-		BlendStateNone
-	};
 
 	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
 
@@ -656,7 +653,46 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 void SampleRenderGeneric(GraphicsContext* Context)
 {
-	
+	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
+	Shader& PS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
+
+	vector<RootSignatureParameter> Parameters = {
+		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
+		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
+		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
+	};
+
+	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
+	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
+
+	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
+
+	vector<RenderPass*> RenderPasses;
+	RenderPasses.resize(BackBufferViews.size());
+
+	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
+	{
+		vector<RenderTargetInformation> CurrentRenderTargets = {
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::NoLoad_Store, BackBufferViews[RenderPassIndex])
+		};
+
+		RenderPassCreateInformation RenderPassInformation(
+			Context->GetMainViewport(),
+			CurrentRenderTargets
+		);
+
+		RenderPasses[RenderPassIndex] = CreateRenderPass(*Context, RenderPassInformation);
+	}
+
+	PipelineCreateInformation PipelineInformation(
+		*DefaultRootSignature,
+		*DefaultInputLayout,
+		*RenderPasses[0],
+		VS, PS,
+		DepthStencilNoneNone
+	);
+
+	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
 
 	for (;;)
 	{

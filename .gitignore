@@ -183,3 +183,6 @@ FakesAssemblies/
 
 # VS Code
 .vs/
+
+# Assets
+assets/

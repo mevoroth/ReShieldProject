@@ -31,7 +31,7 @@
 #include "Vulkan/VulkanCommandList.hpp"
 #include "Vulkan_deprecated/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
-#include "Vulkan_deprecated/VulkanRenderPass.hpp"
+#include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan_deprecated/VulkanRootSignature.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 //*/
@@ -307,14 +307,13 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
-		vector<View*> CurrentViews = {
-			BackBufferViews[RenderPassIndex]
+		vector<RenderTargetInformation> CurrentRenderTargets = {
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::NoLoad_Store, BackBufferViews[RenderPassIndex])
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
 			Context->GetMainViewport(),
-			CurrentViews,
-			BlendStates
+			CurrentRenderTargets
 		);
 
 		RenderPasses[RenderPassIndex] = CreateRenderPass(*Context, RenderPassInformation);
@@ -657,6 +656,8 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 void SampleRenderGeneric(GraphicsContext* Context)
 {
+	
+
 	for (;;)
 	{
 		Context->GetSubmitFence().Wait(Context->GetDevice());
@@ -677,7 +678,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 		Context->GetSwapChain().Present(*Context);
 
-		delete CurrentCommandList;
+		delete CurrentCommandList; // Needs defer delete
 		
 		MSG Message = { 0 };
 		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
@@ -700,7 +701,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	Eternal::Log::Log::Initialize(ConsoleLog);
 
 	using namespace Eternal::Graphics;
-	RenderSettings Settings(1600, 900, DeviceType::D3D12);
+	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
 	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
 	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
 

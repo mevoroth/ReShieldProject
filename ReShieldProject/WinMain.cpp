@@ -94,9 +94,9 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #include <vulkan/vulkan.hpp>
 #include "NextGenGraphics/FrameGraph.hpp"
 #include "Graphics/Format.hpp"
-#include "Graphics_deprecated/View.hpp"
+#include "Graphics/View.hpp"
 #include "Vulkan/VulkanUtils.hpp"
-#include "Vulkan_deprecated/VulkanView.hpp"
+#include "Vulkan/VulkanView.hpp"
 #include "Vulkan_deprecated/VulkanRenderTarget.hpp"
 #include "Vulkan/VulkanResource.hpp"
 #define PUSHIN(a)	in.push_back((Resource*)(a));
@@ -300,7 +300,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		BlendStateNone
 	};
 
-	const vector<View*>& BackBufferViews = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetBackBufferViews();
+	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
 
 	vector<RenderPass*> RenderPasses;
 	RenderPasses.resize(BackBufferViews.size());

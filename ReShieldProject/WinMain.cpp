@@ -12,7 +12,7 @@
 
 #include "Graphics/DepthTest.hpp"
 #include "Graphics/StencilTest.hpp"
-#include "Graphics/Comparison.hpp"
+#include "Graphics/ComparisonFunction.hpp"
 #include "Graphics/BlendState.hpp"
 #include "Graphics/Viewport.hpp"
 #include "Graphics/ShaderType.hpp"
@@ -33,7 +33,7 @@
 #include "Vulkan/VulkanPipeline.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
-#include "Vulkan_deprecated/VulkanRootSignature.hpp"
+#include "Vulkan/VulkanRootSignature.hpp"
 #include "Vulkan/VulkanSwapChain.hpp"
 //*/
 #include "Graphics/CommandQueueFactory.hpp"
@@ -42,8 +42,8 @@
 #include "Graphics/Fence.hpp"
 #include "Graphics/CommandQueue.hpp"
 #include "Graphics/SwapChain.hpp"
-#include "Graphics_deprecated/RootSignature.hpp"
-#include "Graphics_deprecated/RootSignatureFactory.hpp"
+#include "Graphics/RootSignature.hpp"
+#include "Graphics/RootSignatureFactory.hpp"
 
 #include "File/FilePath.hpp"
 
@@ -52,8 +52,7 @@
 
 #include "NextGenGraphics/FrameGraph.hpp"
 #include "Vulkan_deprecated/VulkanHeap.hpp"
-#include "Vulkan_deprecated/VulkanDescriptorHeap.hpp"
-#include "Vulkan_deprecated/VulkanRootSignature.hpp"
+#include "Vulkan/VulkanRootSignature.hpp"
 #include "Graphics_deprecated/PipelineFactory.hpp"
 #include "Graphics_deprecated/InputLayoutFactory.hpp"
 #include "Graphics/RenderPassFactory.hpp"
@@ -288,13 +287,13 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl")
 	);
 
-	vector<RootSignatureParameter> Parameters = {
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
-	};
+	//vector<RootSignatureParameter> Parameters = {
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
+	//};
 
-	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
+	RootSignature* DefaultRootSignature = nullptr;// CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
 	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
 
 	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
@@ -420,7 +419,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 	vk::DescriptorPool DescPool;
 	Vulkan::VerifySuccess(DeviceObj.createDescriptorPool(&DescriptorPoolInfo, nullptr, &DescPool));
 
-	const vk::DescriptorSetLayout& PipeLayout = ((VulkanRootSignature*)DefaultRootSignature)->GetDescriptorSetLayouts()[0];
+	const vk::DescriptorSetLayout PipeLayout;// = ((VulkanRootSignature*)DefaultRootSignature)->GetDescriptorSetLayouts()[0];
 
 	vk::DescriptorSetAllocateInfo DescriptorSetInfo(
 		DescPool,
@@ -656,13 +655,13 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
 	Shader& PS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
 
-	vector<RootSignatureParameter> Parameters = {
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
-		{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
-	};
+	//vector<RootSignatureParameter> Parameters = {
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
+	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
+	//};
 
-	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
+	RootSignature* DefaultRootSignature = nullptr;// CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
 	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
 
 	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
@@ -692,7 +691,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		DepthStencilNoneNone
 	);
 
-	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
+	//Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
 
 	for (;;)
 	{
@@ -704,6 +703,13 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
 		CurrentCommandList->Begin();
+
+		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
+
+
+
+		CurrentCommandList->EndRenderPass();
+
 		CurrentCommandList->End();
 
 		Context->GetGraphicsQueue().SubmitCommandLists(

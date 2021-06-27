@@ -51,7 +51,6 @@
 #include <vector>
 
 #include "NextGenGraphics/FrameGraph.hpp"
-#include "Vulkan_deprecated/VulkanHeap.hpp"
 #include "Vulkan/VulkanRootSignature.hpp"
 #include "Graphics_deprecated/PipelineFactory.hpp"
 #include "Graphics_deprecated/InputLayoutFactory.hpp"
@@ -97,7 +96,6 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #include "Graphics/View.hpp"
 #include "Vulkan/VulkanUtils.hpp"
 #include "Vulkan/VulkanView.hpp"
-#include "Vulkan_deprecated/VulkanRenderTarget.hpp"
 #include "Vulkan/VulkanResource.hpp"
 #define PUSHIN(a)	in.push_back((Resource*)(a));
 #define PUSHOUT(a)	out.push_back((Resource*)(a));
@@ -304,7 +302,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
 		vector<RenderTargetInformation> CurrentRenderTargets = {
-			RenderTargetInformation(BlendStateNone, RenderTargetOperator::NoLoad_Store, BackBufferViews[RenderPassIndex])
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Load_Store, BackBufferViews[RenderPassIndex])
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
@@ -664,7 +662,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	RootSignature* DefaultRootSignature = nullptr;// CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
 	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
 
-	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
+	vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
 
 	vector<RenderPass*> RenderPasses;
 	RenderPasses.resize(BackBufferViews.size());
@@ -672,7 +670,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
 		vector<RenderTargetInformation> CurrentRenderTargets = {
-			RenderTargetInformation(BlendStateNone, RenderTargetOperator::NoLoad_Store, BackBufferViews[RenderPassIndex])
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Load_Store, BackBufferViews[RenderPassIndex])
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
@@ -693,35 +691,34 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 	//Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
 
+	int FrameIndex = 0;
 	for (;;)
 	{
-		Context->GetSubmitFence().Wait(Context->GetDevice());
-		Context->GetSubmitFence().Reset(Context->GetDevice());
-
-		Context->GetSwapChain().Acquire(*Context);
+		Context->BeginFrame();
 
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
 		CurrentCommandList->Begin();
 
+		ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
+		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
+
+		CurrentCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
-
-
 
 		CurrentCommandList->EndRenderPass();
 
+		CurrentCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
 		CurrentCommandList->End();
 
 		Context->GetGraphicsQueue().SubmitCommandLists(
-			*Context,
 			&CurrentCommandList,
-			1
+			1,
+			Context
 		);
 
-		Context->GetSwapChain().Present(*Context);
+		Context->EndFrame();
 
-		delete CurrentCommandList; // Needs defer delete
-		
 		MSG Message = { 0 };
 		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
 		{
@@ -743,7 +740,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	Eternal::Log::Log::Initialize(ConsoleLog);
 
 	using namespace Eternal::Graphics;
-	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
+	RenderSettings Settings(1600, 900, DeviceType::D3D12);
 	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
 	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
 

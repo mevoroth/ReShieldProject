@@ -52,10 +52,11 @@
 
 #include "NextGenGraphics/FrameGraph.hpp"
 #include "Vulkan/VulkanRootSignature.hpp"
-#include "Graphics_deprecated/PipelineFactory.hpp"
-#include "Graphics_deprecated/InputLayoutFactory.hpp"
+#include "Graphics/PipelineFactory.hpp"
+#include "Graphics/InputLayoutFactory.hpp"
 #include "Graphics/RenderPassFactory.hpp"
 #include "Graphics/DepthStencil.hpp"
+#include "Graphics/SamplerFactory.hpp"
 #include "Resources/TextureFactory.hpp"
 #include "Resources/ImmediateTextureFactory.hpp"
 #include "Import/tga/ImportTga.hpp"
@@ -653,13 +654,19 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
 	Shader& PS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
 
-	//vector<RootSignatureParameter> Parameters = {
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
-	//};
+	SamplerCreateInformation SamplerInformation;
+	Sampler* BilinearSampler = CreateSampler(*Context, SamplerInformation);
 
-	RootSignature* DefaultRootSignature = nullptr;// CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
+	RootSignatureCreateInformation RootSignatureInformation(
+		{
+			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_CONSTANT_BUFFER,	RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+			RootSignatureParameter(BilinearSampler,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+		},
+		{}, {}
+	);
+
+	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, RootSignatureInformation);
 	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
 
 	vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
@@ -667,10 +674,12 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	vector<RenderPass*> RenderPasses;
 	RenderPasses.resize(BackBufferViews.size());
 
+	const float ClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
 		vector<RenderTargetInformation> CurrentRenderTargets = {
-			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Load_Store, BackBufferViews[RenderPassIndex])
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Clear_Store, BackBufferViews[RenderPassIndex], ClearValue)
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
@@ -689,7 +698,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		DepthStencilNoneNone
 	);
 
-	//Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
+	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
 
 	int FrameIndex = 0;
 	for (;;)
@@ -707,8 +716,8 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
 
 		CurrentCommandList->EndRenderPass();
-
 		CurrentCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
+		
 		CurrentCommandList->End();
 
 		Context->GetGraphicsQueue().SubmitCommandLists(

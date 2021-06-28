@@ -125,7 +125,10 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		{
 		}
 
-		virtual bool CreateTexture(_Inout_ RawTextureData& TextureData, _Out_ Texture*& OutTexture) override
+		virtual void BeginBatch() override final {}
+		virtual void EndBatch() override final {}
+
+		virtual bool CreateTextureResource(_In_ const string& InName, _Inout_ RawTextureData& TextureData, _Out_ Resource*& OutTexture) override final
 		{
 			//////////////////////////////////////////////////////////////////////////
 			// CPU Buffer
@@ -226,7 +229,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 					0, 0, 1
 				),
 				vk::Offset3D(),
-				vk::Extent3D(TextureData.Width, TextureData.Height, TextureData.Depth)
+				vk::Extent3D(TextureData.Width, TextureData.Height, TextureData.DepthOrArraySize)
 			);
 
 			CmdList.copyBufferToImage(
@@ -254,9 +257,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 			//vkFreeMemory(get_device().get_handle(), staging_memory, nullptr);
 			//vkDestroyBuffer(get_device().get_handle(), staging_buffer, nullptr);
 
-			TextureData.Release();
-
-			OutTexture = reinterpret_cast<Eternal::Graphics::Texture*>(&Texture);
+			OutTexture = reinterpret_cast<Eternal::Graphics::Resource*>(&Texture);
 
 			return true;
 		}
@@ -654,6 +655,19 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 void SampleRenderGeneric(GraphicsContext* Context)
 {
+	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
+	ImmediateTextureFactoryCreateGpuResourceCallback ImmediateCreateGpuResource(*Context);
+
+	TextureFactoryCreateInformation TexFactoryCreateInformation =
+	{
+		ImmediateLoadTexture,
+		ImmediateCreateGpuResource
+	};
+	TextureFactory TexFactory(TexFactoryCreateInformation);
+
+	TextureFactoryRequest Request("Noise", ".\\noise.tga");
+	TexFactory.CreateRequest(Request);
+
 	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
 	Shader& RayMarchingPS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
 	Shader& SampleTexturePS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "SampleTexture", "sampletexture.ps.hlsl"));
@@ -684,12 +698,10 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	vector<RenderPass*> RenderPasses;
 	RenderPasses.resize(BackBufferViews.size());
 
-	const float ClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
 	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
 	{
 		vector<RenderTargetInformation> CurrentRenderTargets = {
-			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Clear_Store, BackBufferViews[RenderPassIndex], ClearValue)
+			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Clear_Store, BackBufferViews[RenderPassIndex])
 		};
 
 		RenderPassCreateInformation RenderPassInformation(
@@ -714,6 +726,8 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	while (IsRunning)
 	{
 		Context->BeginFrame();
+
+		TexFactory.ProcessRequests();
 
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 

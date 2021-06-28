@@ -655,15 +655,22 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 void SampleRenderGeneric(GraphicsContext* Context)
 {
 	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
-	Shader& PS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
+	Shader& RayMarchingPS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
+	Shader& SampleTexturePS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "SampleTexture", "sampletexture.ps.hlsl"));
 
 	SamplerCreateInformation SamplerInformation;
 	Sampler* BilinearSampler = CreateSampler(*Context, SamplerInformation);
 
+	RootSignatureDescriptorTable DescriptorTable(
+		{
+			RootSignatureDescriptorTableParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1)
+		}
+	);
+
 	RootSignatureCreateInformation RootSignatureInformation(
 		{
 			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_CONSTANT_BUFFER,	RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
-			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+			RootSignatureParameter(DescriptorTable,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
 			RootSignatureParameter(BilinearSampler,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
 		},
 		{}, {}
@@ -697,7 +704,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		*DefaultRootSignature,
 		*DefaultInputLayout,
 		*RenderPasses[0],
-		VS, PS,
+		VS, SampleTexturePS,
 		DepthStencilNoneNone
 	);
 
@@ -710,7 +717,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
-		CurrentCommandList->Begin();
+		CurrentCommandList->Begin(*Context);
 
 		ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
 		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);

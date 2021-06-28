@@ -70,6 +70,8 @@ using namespace Eternal::Graphics;
 using namespace Eternal::File;
 using namespace std;
 
+static bool IsRunning = true;
+
 LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -84,6 +86,7 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	} break;
 
 	case WM_DESTROY:
+		IsRunning = false;
 		PostQuitMessage(0);
 		return 0;
 	}
@@ -451,7 +454,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 	double ElapsedTime = 0.0;
 
 	static int i = 0;
-	for (;;)
+	while (IsRunning)
 	{
 		Timer->Update();
 		ElapsedTime += Timer->GetDeltaTimeSeconds();
@@ -701,7 +704,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
 
 	int FrameIndex = 0;
-	for (;;)
+	while (IsRunning)
 	{
 		Context->BeginFrame();
 
@@ -714,6 +717,10 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 		CurrentCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
+
+		CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
+
+		CurrentCommandList->DrawInstanced(6);
 
 		CurrentCommandList->EndRenderPass();
 		CurrentCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
@@ -750,7 +757,15 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::D3D12);
-	WindowsArguments WinArguments(hInstance, hPrevInstance, lpCmdLine, nCmdShow, "Vulkan", "Vulkan", WindowProc);
+	WindowsArguments WinArguments(
+		hInstance,
+		hPrevInstance,
+		lpCmdLine,
+		nCmdShow,
+		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
+		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
+		WindowProc
+	);
 	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
 
 	FilePath::Register("..\\eternal-engine-shaders\\Shaders\\", FileType::SHADERS);

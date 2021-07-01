@@ -17,7 +17,14 @@
 #include "Graphics/Viewport.hpp"
 #include "Graphics/ShaderType.hpp"
 #include "Graphics/ShaderFactory.hpp"
+#include "Graphics/DescriptorTable.hpp"
+#include "Graphics/ViewFactory.hpp"
+#include "Graphics/ResourceFactory.hpp"
 
+#include "d3d12/D3D12CommandList.hpp"
+#include "d3d12/D3D12Resource.hpp"
+#include "d3d12/D3D12GraphicsContext.hpp"
+#include "d3d12/D3D12Sampler.hpp"
 /*
 #include "d3d12/D3D12Device.hpp"
 #include "d3d12/D3D12Pipeline.hpp"
@@ -128,7 +135,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		virtual void BeginBatch() override final {}
 		virtual void EndBatch() override final {}
 
-		virtual bool CreateTextureResource(_In_ const string& InName, _Inout_ RawTextureData& TextureData, _Out_ Resource*& OutTexture) override final
+		virtual bool CreateTextureResource(_In_ const string& InName, _In_ const RawTextureData& TextureData, _Out_ Resource*& OutTexture) override final
 		{
 			//////////////////////////////////////////////////////////////////////////
 			// CPU Buffer
@@ -675,16 +682,10 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	SamplerCreateInformation SamplerInformation;
 	Sampler* BilinearSampler = CreateSampler(*Context, SamplerInformation);
 
-	RootSignatureDescriptorTable DescriptorTable(
-		{
-			RootSignatureDescriptorTableParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1)
-		}
-	);
-
 	RootSignatureCreateInformation RootSignatureInformation(
 		{
 			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_CONSTANT_BUFFER,	RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
-			RootSignatureParameter(DescriptorTable,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
 			RootSignatureParameter(BilinearSampler,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
 		},
 		{}, {}
@@ -716,11 +717,45 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		*DefaultRootSignature,
 		*DefaultInputLayout,
 		*RenderPasses[0],
-		VS, SampleTexturePS,
+		VS,
+		//RayMarchingPS,
+		SampleTexturePS,
 		DepthStencilNoneNone
 	);
 
 	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
+	
+	struct FrameConstants
+	{
+		float Multiplier;
+		float Offset;
+		float _Pad0;
+		float _Pad1;
+	};
+
+	BufferResourceCreateInformation FrameConstantBufferCreateInformation(
+		Context->GetDevice(),
+		"SamplerTextureConstantBuffer",
+		BufferCreateInformation(
+			Format::FORMAT_UNKNOWN,
+			ResourceUsage::RESOURCE_USAGE_SHADER_RESOURCE,
+			sizeof(FrameConstants)
+		),
+		ResourceMemoryType::RESOURCE_MEMORY_TYPE_GPU_UPLOAD
+	);
+	Resource* ConstantBuffer = CreateBuffer(FrameConstantBufferCreateInformation);
+	ViewMetaData FrameConstantBufferMetaData;
+	FrameConstantBufferMetaData.ConstantBufferView.BufferSize = sizeof(FrameConstants);
+	ConstantBufferViewCreateInformation FrameConstantBufferViewCreateInformation(
+		*Context,
+		*ConstantBuffer,
+		FrameConstantBufferMetaData
+	);
+	View* ConstantBufferView = CreateConstantBufferView(FrameConstantBufferViewCreateInformation);
+
+	DescriptorTable SampleTextureDescriptorTable(*DefaultRootSignature);
+
+	View* NoiseTextureView = nullptr;
 
 	int FrameIndex = 0;
 	while (IsRunning)
@@ -728,6 +763,32 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		Context->BeginFrame();
 
 		TexFactory.ProcessRequests();
+
+		Resource* NoiseTexture = TexFactory.GetTexture("Noise");
+		if (!NoiseTextureView)
+		{
+			ViewMetaData NoiseViewMetaData;
+			NoiseViewMetaData.ShaderResourceViewTexture2D.MipLevels = 1;
+			ShaderResourceViewCreateInformation NoiseTextureShaderResourceViewCreateInformation(
+				*Context,
+				*NoiseTexture,
+				NoiseViewMetaData,
+				Format::FORMAT_BGRA8888,
+				ViewShaderResourceType::VIEW_SHADER_RESOURCE_TEXTURE_2D
+			);
+
+			NoiseTextureView = CreateShaderResourceView(NoiseTextureShaderResourceViewCreateInformation);
+		}
+
+		MapRange ConstantBufferMapRange(sizeof(FrameConstants));
+		FrameConstants* FrameConstantsPtr = static_cast<FrameConstants*>(ConstantBuffer->Map(ConstantBufferMapRange));
+		FrameConstantsPtr->Multiplier = 2;
+		FrameConstantsPtr->Offset = -1;
+		ConstantBuffer->Unmap(ConstantBufferMapRange);
+
+		SampleTextureDescriptorTable.SetDescriptor(0, ConstantBufferView);
+		SampleTextureDescriptorTable.SetDescriptor(1, NoiseTextureView);
+		SampleTextureDescriptorTable.SetDescriptor(2, BilinearSampler);
 
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
@@ -740,6 +801,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
 
 		CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
+		CurrentCommandList->SetGraphicsDescriptorTable(SampleTextureDescriptorTable);
 
 		CurrentCommandList->DrawInstanced(6);
 

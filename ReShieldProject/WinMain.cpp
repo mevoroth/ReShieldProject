@@ -337,8 +337,8 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 	vk::Device& DeviceObj = static_cast<VulkanDevice&>(Context->GetDevice()).GetVulkanDevice();
 	vk::PhysicalDevice& PhysDevice = static_cast<VulkanDevice&>(Context->GetDevice()).GetPhysicalDevice();
-	vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSurface();
-	vk::SwapchainKHR& SwapChainObj = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSwapChain();
+	const vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSurface();
+	const vk::SwapchainKHR& SwapChainObj = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSwapChain();
 
 	vk::Queue VulkanQueue;
 	DeviceObj.getQueue(0, 0, &VulkanQueue);
@@ -593,7 +593,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		VulkanCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, static_cast<VulkanPipeline&>(*TestPipeline).GetVulkanPipeline());
 		VulkanCommandBuffer.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,
-			((VulkanRootSignature*)DefaultRootSignature)->GetPipelineLayout(),
+			((VulkanRootSignature*)DefaultRootSignature)->GetVulkanPipelineLayout(),
 			0,
 			0, nullptr,
 			//1, FrameConstantsDescriptorSet,
@@ -675,9 +675,9 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	TextureFactoryRequest Request("Noise", ".\\noise.tga");
 	TexFactory.CreateRequest(Request);
 
-	Shader& VS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
-	Shader& RayMarchingPS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
-	Shader& SampleTexturePS = *Context->GetShaderFactory().GetShader(*Context, ShaderCreateInformation(ShaderType::PS, "SampleTexture", "sampletexture.ps.hlsl"));
+	Shader& SampleTexturePS = *Context->GetShader(ShaderCreateInformation(ShaderType::PS, "SampleTexture", "sampletexture.ps.hlsl"));
+	Shader& VS = *Context->GetShader(ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl"));
+	Shader& RayMarchingPS = *Context->GetShader(ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl"));
 
 	SamplerCreateInformation SamplerInformation;
 	Sampler* BilinearSampler = CreateSampler(*Context, SamplerInformation);
@@ -686,9 +686,9 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		{
 			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_CONSTANT_BUFFER,	RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
 			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
-			RootSignatureParameter(BilinearSampler,															RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
-		},
-		{}, {}
+			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+			RootSignatureParameter(RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER,			RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS),
+		}
 	);
 
 	RootSignature* DefaultRootSignature = CreateRootSignature(*Context, RootSignatureInformation);
@@ -738,7 +738,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		"SamplerTextureConstantBuffer",
 		BufferCreateInformation(
 			Format::FORMAT_UNKNOWN,
-			ResourceUsage::RESOURCE_USAGE_SHADER_RESOURCE,
+			BufferResourceUsage::BUFFER_RESOURCE_USAGE_CONSTANT_BUFFER,
 			sizeof(FrameConstants)
 		),
 		ResourceMemoryType::RESOURCE_MEMORY_TYPE_GPU_UPLOAD
@@ -748,12 +748,12 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	FrameConstantBufferMetaData.ConstantBufferView.BufferSize = sizeof(FrameConstants);
 	ConstantBufferViewCreateInformation FrameConstantBufferViewCreateInformation(
 		*Context,
-		*ConstantBuffer,
+		ConstantBuffer,
 		FrameConstantBufferMetaData
 	);
 	View* ConstantBufferView = CreateConstantBufferView(FrameConstantBufferViewCreateInformation);
 
-	DescriptorTable SampleTextureDescriptorTable(*DefaultRootSignature);
+	DescriptorTable* SampleTextureDescriptorTable = DefaultRootSignature->CreateRootDescriptorTable(*Context);
 
 	View* NoiseTextureView = nullptr;
 
@@ -771,7 +771,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 			NoiseViewMetaData.ShaderResourceViewTexture2D.MipLevels = 1;
 			ShaderResourceViewCreateInformation NoiseTextureShaderResourceViewCreateInformation(
 				*Context,
-				*NoiseTexture,
+				NoiseTexture,
 				NoiseViewMetaData,
 				Format::FORMAT_BGRA8888,
 				ViewShaderResourceType::VIEW_SHADER_RESOURCE_TEXTURE_2D
@@ -786,9 +786,10 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		FrameConstantsPtr->Offset = -1;
 		ConstantBuffer->Unmap(ConstantBufferMapRange);
 
-		SampleTextureDescriptorTable.SetDescriptor(0, ConstantBufferView);
-		SampleTextureDescriptorTable.SetDescriptor(1, NoiseTextureView);
-		SampleTextureDescriptorTable.SetDescriptor(2, BilinearSampler);
+		SampleTextureDescriptorTable->SetDescriptor(0, ConstantBufferView);
+		SampleTextureDescriptorTable->SetDescriptor(1, NoiseTextureView);
+		SampleTextureDescriptorTable->SetDescriptor(2, NoiseTextureView);
+		SampleTextureDescriptorTable->SetDescriptor(3, BilinearSampler);
 
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
@@ -801,7 +802,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
 
 		CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
-		CurrentCommandList->SetGraphicsDescriptorTable(SampleTextureDescriptorTable);
+		CurrentCommandList->SetGraphicsDescriptorTable(*Context, *SampleTextureDescriptorTable);
 
 		CurrentCommandList->DrawInstanced(6);
 
@@ -839,7 +840,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	Eternal::Log::Log::Initialize(ConsoleLog);
 
 	using namespace Eternal::Graphics;
-	RenderSettings Settings(1600, 900, DeviceType::D3D12);
+	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
 	WindowsArguments WinArguments(
 		hInstance,
 		hPrevInstance,

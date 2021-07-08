@@ -68,6 +68,8 @@
 #include "Resources/ImmediateTextureFactory.hpp"
 #include "Import/tga/ImportTga.hpp"
 #include "DebugTools/Debug.hpp"
+#include "Imgui/Imgui.hpp"
+#include "Input/InputFactory.hpp"
 
 using namespace ReShield;
 using namespace Eternal::Core;
@@ -662,6 +664,13 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 
 void SampleRenderGeneric(GraphicsContext* Context)
 {
+	Eternal::Input::Input* MultiInputHandle = Eternal::Input::CreateMultiInput({
+		Eternal::Input::InputType::WIN,
+		Eternal::Input::InputType::XINPUT
+	});
+
+	Eternal::Imgui::Imgui Imgui(*Context, MultiInputHandle);
+
 	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
 	ImmediateTextureFactoryCreateGpuResourceCallback ImmediateCreateGpuResource(*Context);
 
@@ -764,6 +773,19 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 		TexFactory.ProcessRequests();
 
+		Imgui.Begin();
+
+		bool IsWindowOpen = true;
+		ImGui::ShowMetricsWindow(&IsWindowOpen);
+
+		Imgui.End();
+
+		CommandList* TransitionToRenderTargetCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
+		TransitionToRenderTargetCommandList->Begin(*Context);
+		ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
+		TransitionToRenderTargetCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
+		TransitionToRenderTargetCommandList->End();
+
 		Resource* NoiseTexture = TexFactory.GetTexture("Noise");
 		if (!NoiseTextureView)
 		{
@@ -773,7 +795,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 				*Context,
 				NoiseTexture,
 				NoiseViewMetaData,
-				Format::FORMAT_BGRA8888,
+				Format::FORMAT_BGRA8888_UNORM,
 				ViewShaderResourceType::VIEW_SHADER_RESOURCE_TEXTURE_2D
 			);
 
@@ -794,11 +816,6 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 
 		CurrentCommandList->Begin(*Context);
-
-		ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
-		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
-
-		CurrentCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
 		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
 
 		CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
@@ -807,13 +824,25 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CurrentCommandList->DrawInstanced(6);
 
 		CurrentCommandList->EndRenderPass();
-		CurrentCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
-		
 		CurrentCommandList->End();
 
+		CommandList* ImguiCommandList = Imgui.Render(*Context);
+
+		CommandList* TransitionToBackBufferCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
+		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
+		TransitionToBackBufferCommandList->Begin(*Context);
+		TransitionToBackBufferCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
+		TransitionToBackBufferCommandList->End();
+
+		vector<CommandList*> FrameCommandLists;
+		FrameCommandLists.reserve(4);
+		FrameCommandLists.push_back(TransitionToRenderTargetCommandList);
+		FrameCommandLists.push_back(CurrentCommandList);
+		if (ImguiCommandList) FrameCommandLists.push_back(ImguiCommandList);
+		FrameCommandLists.push_back(TransitionToBackBufferCommandList);
 		Context->GetGraphicsQueue().SubmitCommandLists(
-			&CurrentCommandList,
-			1,
+			FrameCommandLists.data(),
+			FrameCommandLists.size(),
 			Context
 		);
 

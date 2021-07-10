@@ -70,6 +70,7 @@
 #include "DebugTools/Debug.hpp"
 #include "Imgui/Imgui.hpp"
 #include "Input/InputFactory.hpp"
+#include "Platform/WindowsProcess.hpp"
 
 using namespace ReShield;
 using namespace Eternal::Core;
@@ -331,8 +332,7 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 		*DefaultRootSignature,
 		*DefaultInputLayout,
 		*RenderPasses[0],
-		VS, PS,
-		DepthStencilNoneNone
+		VS, PS
 	);
 
 	Pipeline* TestPipeline = CreatePipeline(*Context, PipelineInformation);
@@ -662,13 +662,8 @@ void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
 	}
 }
 
-void SampleRenderGeneric(GraphicsContext* Context)
+void SampleRenderGeneric(GraphicsContext* Context, Eternal::Input::Input* MultiInputHandle)
 {
-	Eternal::Input::Input* MultiInputHandle = Eternal::Input::CreateMultiInput({
-		Eternal::Input::InputType::WIN,
-		Eternal::Input::InputType::XINPUT
-	});
-
 	Eternal::Imgui::Imgui Imgui(*Context, MultiInputHandle);
 
 	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
@@ -728,8 +723,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		*RenderPasses[0],
 		VS,
 		//RayMarchingPS,
-		SampleTexturePS,
-		DepthStencilNoneNone
+		SampleTexturePS
 	);
 
 	Pipeline* RayMarchingPipeline = CreatePipeline(*Context, PipelineInformation);
@@ -769,6 +763,9 @@ void SampleRenderGeneric(GraphicsContext* Context)
 	int FrameIndex = 0;
 	while (IsRunning)
 	{
+		Eternal::Platform::WindowsProcess::ExecuteMessageLoop();
+		MultiInputHandle->Update();
+
 		Context->BeginFrame();
 
 		TexFactory.ProcessRequests();
@@ -777,6 +774,10 @@ void SampleRenderGeneric(GraphicsContext* Context)
 
 		bool IsWindowOpen = true;
 		ImGui::ShowMetricsWindow(&IsWindowOpen);
+
+		ImGui::Begin("Debug");
+		ImGui::Text("Frame Index: [%d]", FrameIndex++);
+		ImGui::End();
 
 		Imgui.End();
 
@@ -826,7 +827,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		CurrentCommandList->EndRenderPass();
 		CurrentCommandList->End();
 
-		CommandList* ImguiCommandList = Imgui.Render(*Context);
+		Imgui.Render(*Context);
 
 		CommandList* TransitionToBackBufferCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
 		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
@@ -834,26 +835,7 @@ void SampleRenderGeneric(GraphicsContext* Context)
 		TransitionToBackBufferCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
 		TransitionToBackBufferCommandList->End();
 
-		vector<CommandList*> FrameCommandLists;
-		FrameCommandLists.reserve(4);
-		FrameCommandLists.push_back(TransitionToRenderTargetCommandList);
-		FrameCommandLists.push_back(CurrentCommandList);
-		if (ImguiCommandList) FrameCommandLists.push_back(ImguiCommandList);
-		FrameCommandLists.push_back(TransitionToBackBufferCommandList);
-		Context->GetGraphicsQueue().SubmitCommandLists(
-			FrameCommandLists.data(),
-			FrameCommandLists.size(),
-			Context
-		);
-
 		Context->EndFrame();
-
-		MSG Message = { 0 };
-		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&Message);
-			DispatchMessage(&Message);
-		}
 	}
 }
 
@@ -868,6 +850,15 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	Eternal::Log::Log* ConsoleLog = Eternal::Log::CreateLog(Eternal::Log::CONSOLE, "Eternal");
 	Eternal::Log::Log::Initialize(ConsoleLog);
 
+	Eternal::Platform::WindowsProcess Process;
+
+	Eternal::Input::Input* MultiInputHandle = Eternal::Input::CreateMultiInput({
+		Eternal::Input::InputType::WIN,
+		Eternal::Input::InputType::XINPUT
+	});
+
+	Eternal::Platform::WindowsProcess::SetInputHandler(MultiInputHandle);
+
 	using namespace Eternal::Graphics;
 	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
 	WindowsArguments WinArguments(
@@ -877,7 +868,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		nCmdShow,
 		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
 		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
-		WindowProc
+		Eternal::Platform::WindowsProcess::WindowProc
 	);
 	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
 
@@ -889,7 +880,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	GraphicsContext* Context = CreateGraphicsContext(ContextCreateInformation);
 
 	//SampleRender(Context, Timer);
-	SampleRenderGeneric(Context);
+	SampleRenderGeneric(Context, MultiInputHandle);
 
 	DestroyGraphicsContext(Context);
 	

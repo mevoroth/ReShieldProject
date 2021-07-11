@@ -121,549 +121,13 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #include "Time/Time.hpp"
 #include "Log/LogFactory.hpp"
 #include "Log/Log.hpp"
-
-void SampleRender(GraphicsContext* Context, Eternal::Time::Time* Timer)
-{
-	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
-
-	class DebugVulkanCreateGpuResource : public TextureFactoryCreateGpuResourceCallback
-	{
-	public:
-		GraphicsContext& Context;
-		DebugVulkanCreateGpuResource(GraphicsContext& InContext)
-			: Context(InContext)
-		{
-		}
-
-		virtual void BeginBatch() override final {}
-		virtual void EndBatch() override final {}
-
-		virtual bool CreateTextureResource(_In_ const string& InName, _In_ const RawTextureData& TextureData, _Out_ Resource*& OutTexture) override final
-		{
-			//////////////////////////////////////////////////////////////////////////
-			// CPU Buffer
-			vk::Buffer			StagingBuffer;
-			vk::DeviceMemory	StagingBufferMemory;
-
-			vk::BufferCreateInfo BufferInfo(
-				vk::BufferCreateFlagBits(),
-				TextureData.Width * TextureData.Height * 4,
-				vk::BufferUsageFlagBits::eTransferSrc,
-				vk::SharingMode::eExclusive
-			);
-
-			vk::Device& VulkanDeviceObj = static_cast<VulkanDevice&>(Context.GetDevice()).GetVulkanDevice();
-			Vulkan::VerifySuccess(VulkanDeviceObj.createBuffer(&BufferInfo, nullptr, &StagingBuffer));
-
-			GraphicsMemoryFlag MemoryFlag = GraphicsMemoryFlag::MEMORY_FLAG_MAPPABLE | GraphicsMemoryFlag::MEMORY_FLAG_MANAGED_CACHE;
-
-			vk::MemoryRequirements StagingBufferMemoryRequirements = VulkanDeviceObj.getBufferMemoryRequirements(StagingBuffer);
-
-			vk::MemoryAllocateInfo StagingBufferMemoryAllocateInfo(
-				StagingBufferMemoryRequirements.size,
-				static_cast<VulkanDevice&>(Context.GetDevice()).FindBestMemoryTypeIndex(
-					uint32_t(StagingBufferMemoryRequirements.memoryTypeBits),
-					Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
-				)
-			);
-
-			Vulkan::VerifySuccess(VulkanDeviceObj.allocateMemory(&StagingBufferMemoryAllocateInfo, nullptr, &StagingBufferMemory));
-			VulkanDeviceObj.bindBufferMemory(StagingBuffer, StagingBufferMemory, 0);
-
-			void* StagingData = nullptr;
-			Vulkan::VerifySuccess(VulkanDeviceObj.mapMemory(StagingBufferMemory, 0, StagingBufferMemoryRequirements.size, vk::MemoryMapFlagBits(), &StagingData));
-			memcpy(StagingData, TextureData.TextureData, TextureData.Width * TextureData.Height * 4);
-			VulkanDeviceObj.unmapMemory(StagingBufferMemory);
-
-			//////////////////////////////////////////////////////////////////////////
-			// GPU
-			vk::Image& Texture = *new vk::Image;
-			vk::DeviceMemory TextureMemory;
-
-			vk::ImageCreateInfo TextureInfo(
-				vk::ImageCreateFlagBits(),
-				vk::ImageType::e2D,
-				vk::Format::eR8G8B8A8Unorm,
-				vk::Extent3D(TextureData.Width, TextureData.Height, 1),
-				1, 1,
-				vk::SampleCountFlagBits::e1,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-				vk::SharingMode::eExclusive,
-				0, nullptr,
-				vk::ImageLayout::eUndefined
-			);
-
-			Vulkan::VerifySuccess(VulkanDeviceObj.createImage(&TextureInfo, nullptr, &Texture));
-			vk::MemoryRequirements TextureMemoryRequirements = VulkanDeviceObj.getImageMemoryRequirements(Texture);
-
-			MemoryFlag = GraphicsMemoryFlag::MEMORY_FLAG_GPU;
-			vk::MemoryAllocateInfo TextureMemoryAllocateInfo(
-				TextureMemoryRequirements.size,
-				static_cast<VulkanDevice&>(Context.GetDevice()).FindBestMemoryTypeIndex(
-					uint32_t(StagingBufferMemoryRequirements.memoryTypeBits),
-					Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
-				)
-			);
-
-			Vulkan::VerifySuccess(VulkanDeviceObj.allocateMemory(&TextureMemoryAllocateInfo, nullptr, &TextureMemory));
-			VulkanDeviceObj.bindImageMemory(Texture, TextureMemory, 0);
-
-			vk::ImageMemoryBarrier TextureMemoryBarrier(
-				vk::AccessFlagBits(),
-				vk::AccessFlagBits::eTransferWrite,
-				vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eTransferDstOptimal,
-				0, 0,
-				Texture,
-				vk::ImageSubresourceRange(
-					vk::ImageAspectFlagBits::eColor,
-					0, 1,
-					0, 1
-				)
-			);
-
-			CmdList.pipelineBarrier(
-				vk::PipelineStageFlagBits::eHost,
-				vk::PipelineStageFlagBits::eTransfer,
-				vk::DependencyFlagBits(),
-				0, static_cast<vk::MemoryBarrier*>(nullptr),
-				0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
-				1, &TextureMemoryBarrier
-			);
-
-			vk::BufferImageCopy TextureRegion(
-				0ull, TextureData.Width, TextureData.Height,
-				vk::ImageSubresourceLayers(
-					vk::ImageAspectFlagBits::eColor,
-					0, 0, 1
-				),
-				vk::Offset3D(),
-				vk::Extent3D(TextureData.Width, TextureData.Height, TextureData.DepthOrArraySize)
-			);
-
-			CmdList.copyBufferToImage(
-				StagingBuffer,
-				Texture,
-				vk::ImageLayout::eTransferDstOptimal,
-				1, &TextureRegion
-			);
-
-			TextureMemoryBarrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
-			TextureMemoryBarrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
-			TextureMemoryBarrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
-			TextureMemoryBarrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-
-			CmdList.pipelineBarrier(
-				vk::PipelineStageFlagBits::eTransfer,
-				vk::PipelineStageFlagBits::eFragmentShader,
-				vk::DependencyFlagBits(),
-				0, static_cast<vk::MemoryBarrier*>(nullptr),
-				0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
-				1, &TextureMemoryBarrier
-			);
-
-			//// Clean up staging resources
-			//vkFreeMemory(get_device().get_handle(), staging_memory, nullptr);
-			//vkDestroyBuffer(get_device().get_handle(), staging_buffer, nullptr);
-
-			OutTexture = reinterpret_cast<Eternal::Graphics::Resource*>(&Texture);
-
-			return true;
-		}
-
-		void HACKSetCommandList(const vk::CommandBuffer& InCmdList)
-		{
-			CmdList = InCmdList;
-		}
-
-		vk::CommandBuffer CmdList;
-	} DebugVulkanCreateGpuResourceCB(*Context);
-
-	TextureFactoryCreateInformation TexFactoryCreateInformation =
-	{
-		ImmediateLoadTexture,
-		DebugVulkanCreateGpuResourceCB
-	};
-	TextureFactory TexFactory(TexFactoryCreateInformation);
-
-	VulkanShader VS(
-		*Context,
-		ShaderCreateInformation(ShaderType::VS, "PostProcess", "postprocess.vs.hlsl")
-	);
-	//VulkanShader PS(
-	//	*Context,
-	//	ShaderCreateInformation(ShaderType::PS, "DefaultPostProcess", "defaultpostprocess.ps.hlsl")
-	//);
-	VulkanShader PS(
-		*Context,
-		ShaderCreateInformation(ShaderType::PS, "RayMarch_00", "raymarching_00.ps.hlsl")
-	);
-
-	//vector<RootSignatureParameter> Parameters = {
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_DYNAMIC_BUFFER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 0 },
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_TEXTURE, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 1 },
-	//	{ RootSignatureParameterType::ROOT_SIGNATURE_PARAMETER_SAMPLER, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS, 2 }
-	//};
-
-	RootSignature* DefaultRootSignature = nullptr;// CreateRootSignature(*Context, &Parameters, 1, RootSignatureAccess::ROOT_SIGNATURE_ACCESS_PS);
-	InputLayout* DefaultInputLayout = CreateInputLayout(*Context);
-
-	const vector<View*>& BackBufferViews = Context->GetSwapChain().GetBackBufferRenderTargetViews();
-
-	vector<RenderPass*> RenderPasses;
-	RenderPasses.resize(BackBufferViews.size());
-
-	for (int RenderPassIndex = 0; RenderPassIndex < BackBufferViews.size(); ++RenderPassIndex)
-	{
-		vector<RenderTargetInformation> CurrentRenderTargets = {
-			RenderTargetInformation(BlendStateNone, RenderTargetOperator::Load_Store, BackBufferViews[RenderPassIndex])
-		};
-
-		RenderPassCreateInformation RenderPassInformation(
-			Context->GetMainViewport(),
-			CurrentRenderTargets
-		);
-
-		RenderPasses[RenderPassIndex] = CreateRenderPass(*Context, RenderPassInformation);
-	}
-
-	PipelineCreateInformation PipelineInformation(
-		*DefaultRootSignature,
-		*DefaultInputLayout,
-		*RenderPasses[0],
-		VS, PS
-	);
-
-	Pipeline* TestPipeline = CreatePipeline(*Context, PipelineInformation);
-
-	vk::Device& DeviceObj = static_cast<VulkanDevice&>(Context->GetDevice()).GetVulkanDevice();
-	vk::PhysicalDevice& PhysDevice = static_cast<VulkanDevice&>(Context->GetDevice()).GetPhysicalDevice();
-	const vk::SurfaceKHR& SwapChainSurface = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSurface();
-	const vk::SwapchainKHR& SwapChainObj = static_cast<VulkanSwapChain&>(Context->GetSwapChain()).GetSwapChain();
-
-	vk::Queue VulkanQueue;
-	DeviceObj.getQueue(0, 0, &VulkanQueue);
-
-	vk::FenceCreateInfo FenceInfo;
-	vk::Fence SubmitFence;
-	Vulkan::VerifySuccess(DeviceObj.createFence(&FenceInfo, nullptr, &SubmitFence));
-
-	vk::CommandPoolCreateInfo CommandPoolInfo(
-		vk::CommandPoolCreateFlagBits::eTransient, 0
-	);
-	vk::CommandPool VulkanCommandPool;
-	Vulkan::VerifySuccess(DeviceObj.createCommandPool(&CommandPoolInfo, nullptr, &VulkanCommandPool));
-
-	vk::CommandBufferAllocateInfo CommandBufferInfo(
-		VulkanCommandPool,
-		vk::CommandBufferLevel::ePrimary,
-		2
-	);
-	vk::CommandBuffer CommandBuffers[2];
-	Vulkan::VerifySuccess(DeviceObj.allocateCommandBuffers(&CommandBufferInfo, CommandBuffers));
-	vk::CommandBuffer& VulkanCommandBuffer = CommandBuffers[0];
-
-	std::vector<vk::Semaphore> AcquireSemaphores;
-	vk::SemaphoreCreateInfo SemaphoreInfo;
-	AcquireSemaphores.resize(2);
-	for (int SemIndex = 0; SemIndex < 2; ++SemIndex)
-	{
-		Vulkan::VerifySuccess(DeviceObj.createSemaphore(&SemaphoreInfo, nullptr, &AcquireSemaphores[SemIndex]));
-	}
-
-	vk::Semaphore ReleaseSemaphore;
-	Vulkan::VerifySuccess(DeviceObj.createSemaphore(&SemaphoreInfo, nullptr, &ReleaseSemaphore));
-
-	struct PerFrame
-	{
-		float ElapsedTime;
-		float _Pad0;
-		float _Pad1;
-		float _Pad2;
-	};
-
-	vk::BufferCreateInfo BufferInfo(
-		vk::BufferCreateFlagBits(),
-		sizeof(PerFrame),
-		vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::SharingMode::eExclusive
-	);
-
-	vk::Buffer PerFrameConstantBuffer;
-	Vulkan::VerifySuccess(DeviceObj.createBuffer(&BufferInfo, nullptr, &PerFrameConstantBuffer));
-
-	GraphicsMemoryFlag MemoryFlag = GraphicsMemoryFlag::MEMORY_FLAG_MAPPABLE;
-
-	vk::MemoryRequirements BufferMemoryRequirements = DeviceObj.getBufferMemoryRequirements(PerFrameConstantBuffer);
-	vk::MemoryAllocateInfo MemoryInfo(
-		sizeof(PerFrame),
-		static_cast<VulkanDevice&>(Context->GetDevice()).FindBestMemoryTypeIndex(
-			uint32_t(BufferMemoryRequirements.memoryTypeBits),
-			Vulkan::ConvertGraphicsMemoryFlagsToMemoryPropertyFlags(MemoryFlag)
-		)
-	);
-
-	const uint32_t BufferSize = BufferMemoryRequirements.size;
-
-	vk::DeviceMemory BufferMemory;
-	Vulkan::VerifySuccess(DeviceObj.allocateMemory(&MemoryInfo, nullptr, &BufferMemory));
-
-	std::array<vk::DescriptorPoolSize, 3> PoolSizes;
-	PoolSizes[0] = vk::DescriptorPoolSize(
-		vk::DescriptorType::eUniformBufferDynamic,
-		16
-	);
-	PoolSizes[1] = vk::DescriptorPoolSize(
-		vk::DescriptorType::eSampledImage,
-		16
-	);
-	PoolSizes[2] = vk::DescriptorPoolSize(
-		vk::DescriptorType::eSampler,
-		16
-	);
-
-	vk::DescriptorPoolCreateInfo DescriptorPoolInfo(
-		vk::DescriptorPoolCreateFlagBits(),
-		2,
-		PoolSizes.size(), PoolSizes.data()
-	);
-	vk::DescriptorPool DescPool;
-	Vulkan::VerifySuccess(DeviceObj.createDescriptorPool(&DescriptorPoolInfo, nullptr, &DescPool));
-
-	const vk::DescriptorSetLayout PipeLayout;// = ((VulkanRootSignature*)DefaultRootSignature)->GetDescriptorSetLayouts()[0];
-
-	vk::DescriptorSetAllocateInfo DescriptorSetInfo(
-		DescPool,
-		1, &PipeLayout
-	);
-	vk::DescriptorSet FrameConstantsDescriptorSet;
-	DeviceObj.allocateDescriptorSets(
-		&DescriptorSetInfo,
-		&FrameConstantsDescriptorSet
-	);
-
-	vk::ImageView NoiseTextureView;
-
-	vk::Sampler NoiseTextureSampler;
-	vk::SamplerCreateInfo NoiseTextureSamplerCreateInfo(
-		vk::SamplerCreateFlagBits(),
-		vk::Filter::eLinear,
-		vk::Filter::eLinear,
-		vk::SamplerMipmapMode::eLinear
-	);
-	Vulkan::VerifySuccess(DeviceObj.createSampler(
-		&NoiseTextureSamplerCreateInfo,
-		nullptr,
-		&NoiseTextureSampler
-	));
-
-	TextureFactoryRequest Request("Noise", ".\\noise.tga");
-	TexFactory.CreateRequest(Request);
-
-	double ElapsedTime = 0.0;
-
-	static int i = 0;
-	while (IsRunning)
-	{
-		Timer->Update();
-		ElapsedTime += Timer->GetDeltaTimeSeconds();
-
-		vk::CommandBufferBeginInfo CommandBufferBegin(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-
-		bool HasRequests = TexFactory.HasRequests();
-
-		DebugVulkanCreateGpuResourceCB.HACKSetCommandList(CommandBuffers[1]);
-
-		if (HasRequests)
-			CommandBuffers[1].begin(&CommandBufferBegin);
-		TexFactory.ProcessRequests();
-		if (HasRequests)
-			CommandBuffers[1].end();
-
-		uint32_t ImageIndex;
-		vk::Semaphore& CurrentSemaphore = AcquireSemaphores[i % 2];
-
-		Vulkan::VerifySuccess(DeviceObj.acquireNextImageKHR(SwapChainObj, UINT64_MAX, CurrentSemaphore, nullptr, &ImageIndex));
-
-		if (i != 0)
-		{
-			DeviceObj.waitForFences(1, &SubmitFence, true, UINT64_MAX);
-			DeviceObj.resetFences(1, &SubmitFence);
-		}
-
-		DeviceObj.resetCommandPool(VulkanCommandPool, vk::CommandPoolResetFlagBits());
-
-		vk::RenderPassBeginInfo BeginRenderPassInfo(
-			static_cast<VulkanRenderPass&>(*RenderPasses[i % 2]).GetVulkanRenderPass(),
-			static_cast<VulkanRenderPass&>(*RenderPasses[i % 2]).GetFrameBuffer(),
-			Vulkan::ConvertViewportToRect2D(Context->GetMainViewport())
-		);
-
-		Vulkan::VerifySuccess(VulkanCommandBuffer.begin(&CommandBufferBegin));
-
-		const vk::Image& BackBufferImage = static_cast<VulkanResource*>(Context->GetSwapChain().GetBackBuffers()[ImageIndex])->GetVulkanImage();
-
-		vk::ImageMemoryBarrier PresentToColorAttachmentOutput(
-			vk::AccessFlagBits::eColorAttachmentRead,
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			i <= 1 ? vk::ImageLayout::eUndefined : vk::ImageLayout::ePresentSrcKHR,
-			vk::ImageLayout::eColorAttachmentOptimal,
-			0, 0,
-			BackBufferImage,
-			vk::ImageSubresourceRange(
-				vk::ImageAspectFlagBits::eColor,
-				0, 1,
-				0, 1
-			)
-		);
-
-		PerFrame* PerFrameData;
-		DeviceObj.mapMemory(BufferMemory, 0, VK_WHOLE_SIZE, vk::MemoryMapFlagBits(), reinterpret_cast<void**>(&PerFrameData));
-		PerFrameData->ElapsedTime = (float)ElapsedTime;
-		DeviceObj.unmapMemory(BufferMemory);
-		if (i == 0)
-			DeviceObj.bindBufferMemory(PerFrameConstantBuffer, BufferMemory, 0ull);
-
-		std::array<vk::WriteDescriptorSet, 2> NewDescriptorSets;
-
-		vk::DeviceSize Range = sizeof(PerFrame);
-		vk::DescriptorBufferInfo BufferDescriptorInfo(
-			PerFrameConstantBuffer,
-			0, Range
-		);
-		NewDescriptorSets[0] = vk::WriteDescriptorSet(
-			FrameConstantsDescriptorSet,
-			0, 0, 1, vk::DescriptorType::eUniformBufferDynamic,
-			nullptr, &BufferDescriptorInfo, nullptr
-		);
-
-		vk::Image* NoiseTexture = reinterpret_cast<vk::Image*>(TexFactory.GetTexture("Noise"));
-		if (NoiseTexture && !NoiseTextureView)
-		{
-			vk::ImageViewCreateInfo NoiseImageViewInformation(
-				vk::ImageViewCreateFlagBits(),
-				*NoiseTexture,
-				vk::ImageViewType::e2D,
-				vk::Format::eR8G8B8A8Unorm,
-				vk::ComponentMapping(),
-				vk::ImageSubresourceRange(
-					vk::ImageAspectFlagBits::eColor,
-					0, 1, 0, 1
-				)
-			);
-			Vulkan::VerifySuccess(DeviceObj.createImageView(&NoiseImageViewInformation, nullptr, &NoiseTextureView));
-		}
-
-		vk::DescriptorImageInfo ImageDescriptorInfo(
-			vk::Sampler(),
-			NoiseTextureView,
-			vk::ImageLayout::eShaderReadOnlyOptimal
-		);
-
-		NewDescriptorSets[1] = vk::WriteDescriptorSet(
-			FrameConstantsDescriptorSet,
-			1, 0, 1, vk::DescriptorType::eSampledImage,
-			&ImageDescriptorInfo, nullptr, nullptr
-		);
-
-		DeviceObj.updateDescriptorSets(
-			NewDescriptorSets.size(), NewDescriptorSets.data(),
-			0, nullptr
-		);
-
-		//for (int32_t NewDescriptorSetIndex = 0; NewDescriptorSetIndex < NewDescriptorSets.size(); ++NewDescriptorSetIndex)
-		//{
-		//	DeviceObj.updateDescriptorSets(
-		//		1, &NewDescriptorSets[NewDescriptorSetIndex],
-		//		0, nullptr
-		//	);
-		//}
-
-		VulkanCommandBuffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eAllGraphics,
-			vk::PipelineStageFlagBits::eAllGraphics,
-			vk::DependencyFlagBits(),
-			0, static_cast<vk::MemoryBarrier*>(nullptr),
-			0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
-			1, &PresentToColorAttachmentOutput
-		);
-
-		uint32_t DynamicOffset = 0;
-
-		VulkanCommandBuffer.beginRenderPass(&BeginRenderPassInfo, vk::SubpassContents::eInline);
-		VulkanCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, static_cast<VulkanPipeline&>(*TestPipeline).GetVulkanPipeline());
-		VulkanCommandBuffer.bindDescriptorSets(
-			vk::PipelineBindPoint::eGraphics,
-			((VulkanRootSignature*)DefaultRootSignature)->GetVulkanPipelineLayout(),
-			0,
-			0, nullptr,
-			//1, FrameConstantsDescriptorSet,
-			//1, &DynamicOffset
-			0, nullptr
-		);
-		VulkanCommandBuffer.draw(6, 1, 0, 0);
-		VulkanCommandBuffer.endRenderPass();
-
-		vk::ImageMemoryBarrier ColorAttachmentOutputToPresent(
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::AccessFlagBits::eColorAttachmentRead,
-			vk::ImageLayout::eColorAttachmentOptimal,
-			vk::ImageLayout::ePresentSrcKHR,
-			0, 0,
-			BackBufferImage,
-			vk::ImageSubresourceRange(
-				vk::ImageAspectFlagBits::eColor,
-				0, 1,
-				0, 1
-			)
-		);
-
-		VulkanCommandBuffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eAllGraphics,
-			vk::PipelineStageFlagBits::eAllGraphics,
-			vk::DependencyFlagBits(),
-			0, static_cast<vk::MemoryBarrier*>(nullptr),
-			0, static_cast<vk::BufferMemoryBarrier*>(nullptr),
-			1, &ColorAttachmentOutputToPresent
-		);
-
-		VulkanCommandBuffer.end();
-
-		vk::CommandBuffer SubmitCmdList[2] = {
-			CommandBuffers[1],
-			CommandBuffers[0]
-		};
-
-		vk::PipelineStageFlags WaitDestStageMask = vk::PipelineStageFlagBits::eAllGraphics;
-		vk::SubmitInfo SubmitInfo(
-			1, &CurrentSemaphore,
-			&WaitDestStageMask,
-			HasRequests ? 2 : 1, HasRequests ? SubmitCmdList : &VulkanCommandBuffer,
-			1, &ReleaseSemaphore
-		);
-		Vulkan::VerifySuccess(VulkanQueue.submit(1, &SubmitInfo, SubmitFence));
-
-		//present
-		vk::PresentInfoKHR PresentInfo(
-			1, &ReleaseSemaphore,
-			1, &SwapChainObj,
-			&ImageIndex
-		);
-		Vulkan::VerifySuccess(VulkanQueue.presentKHR(&PresentInfo));
-
-		MSG Message = { 0 };
-		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&Message);
-			DispatchMessage(&Message);
-		}
-		i++;
-	}
-}
+#include "Optick/Optick.hpp"
+#define VK_USE_PLATFORM_WIN32_KHR
+#include "optick.h"
 
 void SampleRenderGeneric(GraphicsContext* Context, Eternal::Input::Input* MultiInputHandle)
 {
+	OPTICK_THREAD("MainThread");
 	Eternal::Imgui::Imgui Imgui(*Context, MultiInputHandle);
 
 	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
@@ -763,79 +227,114 @@ void SampleRenderGeneric(GraphicsContext* Context, Eternal::Input::Input* MultiI
 	int FrameIndex = 0;
 	while (IsRunning)
 	{
-		Eternal::Platform::WindowsProcess::ExecuteMessageLoop();
-		MultiInputHandle->Update();
+		OPTICK_FRAME("EternalFrame");
 
-		Context->BeginFrame();
-
-		TexFactory.ProcessRequests();
-
-		Imgui.Begin();
-
-		bool IsWindowOpen = true;
-		ImGui::ShowMetricsWindow(&IsWindowOpen);
-
-		ImGui::Begin("Debug");
-		ImGui::Text("Frame Index: [%d]", FrameIndex++);
-		ImGui::End();
-
-		Imgui.End();
-
-		CommandList* TransitionToRenderTargetCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
-		TransitionToRenderTargetCommandList->Begin(*Context);
-		ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
-		TransitionToRenderTargetCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
-		TransitionToRenderTargetCommandList->End();
-
-		Resource* NoiseTexture = TexFactory.GetTexture("Noise");
-		if (!NoiseTextureView)
 		{
-			ViewMetaData NoiseViewMetaData;
-			NoiseViewMetaData.ShaderResourceViewTexture2D.MipLevels = 1;
-			ShaderResourceViewCreateInformation NoiseTextureShaderResourceViewCreateInformation(
-				*Context,
-				NoiseTexture,
-				NoiseViewMetaData,
-				Format::FORMAT_BGRA8888_UNORM,
-				ViewShaderResourceType::VIEW_SHADER_RESOURCE_TEXTURE_2D
-			);
-
-			NoiseTextureView = CreateShaderResourceView(NoiseTextureShaderResourceViewCreateInformation);
+			OPTICK_EVENT("BeginFrame");
+			Eternal::Platform::WindowsProcess::ExecuteMessageLoop();
 		}
 
-		MapRange ConstantBufferMapRange(sizeof(FrameConstants));
-		FrameConstants* FrameConstantsPtr = static_cast<FrameConstants*>(ConstantBuffer->Map(ConstantBufferMapRange));
-		FrameConstantsPtr->Multiplier = 2;
-		FrameConstantsPtr->Offset = -1;
-		ConstantBuffer->Unmap(ConstantBufferMapRange);
+		{
+			OPTICK_EVENT("InputUpdate");
+			MultiInputHandle->Update();
+		}
 
-		SampleTextureDescriptorTable->SetDescriptor(0, ConstantBufferView);
-		SampleTextureDescriptorTable->SetDescriptor(1, NoiseTextureView);
-		SampleTextureDescriptorTable->SetDescriptor(2, NoiseTextureView);
-		SampleTextureDescriptorTable->SetDescriptor(3, BilinearSampler);
+		{
+			OPTICK_EVENT("BeginFrame");
+			Context->BeginFrame();
+		}
 
-		CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
+		{
+			OPTICK_EVENT("TextureStreaming");
+			TexFactory.ProcessRequests();
+		}
 
-		CurrentCommandList->Begin(*Context);
-		CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
+		{
+			OPTICK_EVENT("Imgui");
+			Imgui.Begin();
 
-		CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
-		CurrentCommandList->SetGraphicsDescriptorTable(*Context, *SampleTextureDescriptorTable);
+			bool IsWindowOpen = true;
+			ImGui::ShowMetricsWindow(&IsWindowOpen);
 
-		CurrentCommandList->DrawInstanced(6);
+			ImGui::Begin("Debug");
+			ImGui::Text("Frame Index: [%d]", FrameIndex++);
+			ImGui::End();
 
-		CurrentCommandList->EndRenderPass();
-		CurrentCommandList->End();
+			Imgui.End();
+		}
 
-		Imgui.Render(*Context);
+		{
+			OPTICK_EVENT("TransitionToRenderTarget");
+			CommandList* TransitionToRenderTargetCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC, "TransitionToRenderTarget");
+			TransitionToRenderTargetCommandList->Begin(*Context);
+			ResourceTransition BackBufferPresentToRenderTarget(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_RENDER_TARGET);
+			TransitionToRenderTargetCommandList->Transition(&BackBufferPresentToRenderTarget, 1);
+			TransitionToRenderTargetCommandList->End();
+		}
 
-		CommandList* TransitionToBackBufferCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC);
-		ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
-		TransitionToBackBufferCommandList->Begin(*Context);
-		TransitionToBackBufferCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
-		TransitionToBackBufferCommandList->End();
+		{
+			OPTICK_EVENT("SetResourceTable");
+			Resource* NoiseTexture = TexFactory.GetTexture("Noise");
+			if (!NoiseTextureView)
+			{
+				ViewMetaData NoiseViewMetaData;
+				NoiseViewMetaData.ShaderResourceViewTexture2D.MipLevels = 1;
+				ShaderResourceViewCreateInformation NoiseTextureShaderResourceViewCreateInformation(
+					*Context,
+					NoiseTexture,
+					NoiseViewMetaData,
+					Format::FORMAT_BGRA8888_UNORM,
+					ViewShaderResourceType::VIEW_SHADER_RESOURCE_TEXTURE_2D
+				);
 
-		Context->EndFrame();
+				NoiseTextureView = CreateShaderResourceView(NoiseTextureShaderResourceViewCreateInformation);
+			}
+
+			MapRange ConstantBufferMapRange(sizeof(FrameConstants));
+			FrameConstants* FrameConstantsPtr = static_cast<FrameConstants*>(ConstantBuffer->Map(ConstantBufferMapRange));
+			FrameConstantsPtr->Multiplier = 2;
+			FrameConstantsPtr->Offset = -1;
+			ConstantBuffer->Unmap(ConstantBufferMapRange);
+
+			SampleTextureDescriptorTable->SetDescriptor(0, ConstantBufferView);
+			SampleTextureDescriptorTable->SetDescriptor(1, NoiseTextureView);
+			SampleTextureDescriptorTable->SetDescriptor(2, NoiseTextureView);
+			SampleTextureDescriptorTable->SetDescriptor(3, BilinearSampler);
+		}
+		{
+			OPTICK_EVENT("DrawSample");
+			CommandList* CurrentCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC, "DrawSample");
+
+			CurrentCommandList->Begin(*Context);
+			CurrentCommandList->BeginRenderPass(*RenderPasses[Context->GetCurrentFrameIndex()]);
+
+			CurrentCommandList->SetGraphicsPipeline(*RayMarchingPipeline);
+			{
+				OPTICK_EVENT("SetGraphicsResourceTable");
+				CurrentCommandList->SetGraphicsDescriptorTable(*Context, *SampleTextureDescriptorTable);
+			}
+
+			CurrentCommandList->DrawInstanced(6);
+
+			CurrentCommandList->EndRenderPass();
+			CurrentCommandList->End();
+		}
+		{
+			OPTICK_EVENT("ImguiRender");
+			Imgui.Render(*Context);
+		}
+		{
+			OPTICK_EVENT("TransitionToPresent");
+			CommandList* TransitionToBackBufferCommandList = Context->CreateNewCommandList(CommandType::COMMAND_TYPE_GRAPHIC, "TransitionToPresent");
+			ResourceTransition BackBufferRenderTargetToPresent(BackBufferViews[Context->GetCurrentFrameIndex()], TransitionState::TRANSITION_PRESENT);
+			TransitionToBackBufferCommandList->Begin(*Context);
+			TransitionToBackBufferCommandList->Transition(&BackBufferRenderTargetToPresent, 1);
+			TransitionToBackBufferCommandList->End();
+		}
+		{
+			OPTICK_EVENT("EndFrame");
+			Context->EndFrame();
+		}
 	}
 }
 
@@ -845,6 +344,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	int nCmdShow)
 {
 	Eternal::DebugTools::WaitForDebugger();
+
+	const DeviceType ProgramDeviceType = DeviceType::VULKAN;
+
+	const char* AppName = ProgramDeviceType == DeviceType::D3D12 ? "D3D12" : "Vulkan";
 
 	Eternal::Time::Time* Timer = Eternal::Time::CreateTime(Eternal::Time::TimeType::WIN);
 	Eternal::Log::Log* ConsoleLog = Eternal::Log::CreateLog(Eternal::Log::CONSOLE, "Eternal");
@@ -858,16 +361,21 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	});
 
 	Eternal::Platform::WindowsProcess::SetInputHandler(MultiInputHandle);
+	Eternal::Platform::WindowsProcess::SetIsRunning(&IsRunning);
 
 	using namespace Eternal::Graphics;
-	RenderSettings Settings(1600, 900, DeviceType::VULKAN);
+	RenderSettings Settings(
+		ProgramDeviceType,
+		1600, 900,
+		/*InIsVSync =*/ true
+	);
 	WindowsArguments WinArguments(
 		hInstance,
 		hPrevInstance,
 		lpCmdLine,
 		nCmdShow,
-		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
-		Settings.Driver == DeviceType::D3D12 ? "D3D12" : "Vulkan",
+		AppName,
+		AppName,
 		Eternal::Platform::WindowsProcess::WindowProc
 	);
 	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
@@ -878,9 +386,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	ImportTga* TgaImporter = new ImportTga();
 
 	GraphicsContext* Context = CreateGraphicsContext(ContextCreateInformation);
-
+	
+	OPTICK_APP(AppName);
+	Eternal::Optick::OptickStart(*Context);
 	//SampleRender(Context, Timer);
 	SampleRenderGeneric(Context, MultiInputHandle);
+	Eternal::Optick::OptickStop();
 
 	DestroyGraphicsContext(Context);
 	

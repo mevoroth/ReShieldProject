@@ -10,6 +10,8 @@ namespace ReShield
 	class ReShieldMainMenuState : public GameState
 	{
 	public:
+		ReShieldMainMenuState(_In_ Game& InGame);
+
 		virtual void Begin() override;
 		virtual void Update() override;
 		virtual GameState* NextState() override;

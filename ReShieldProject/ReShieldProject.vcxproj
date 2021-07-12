@@ -101,7 +101,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12;ETERNAL_USE_DXMATH_TYPES;FBXSDK_SHARED;ETERNAL_DEBUG;SHADERC_ENABLE_SHARED_CRT=ON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ForcedIncludeFiles>sal.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>sal.h;optick.h;ReShield.hpp</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatSpecificWarningsAsErrors>4150;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GameState\ReShieldInGameState.cpp" />
     <ClCompile Include="GameState\ReShieldMainMenuState.cpp" />
     <ClCompile Include="GameState\ReShieldPreGameState.cpp" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Data\ReShieldData.hpp" />
+    <ClInclude Include="Debug.hpp" />
     <ClInclude Include="GameState\ReShieldInGameState.hpp" />
     <ClInclude Include="GameState\ReShieldMainMenuState.hpp" />
     <ClInclude Include="GameState\ReShieldPreGameState.hpp" />

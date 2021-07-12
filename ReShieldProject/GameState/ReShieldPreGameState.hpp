@@ -1,5 +1,4 @@
-#ifndef _RESHIELD_PRE_GAME_STATE_HPP_
-#define _RESHIELD_PRE_GAME_STATE_HPP_
+#pragma once
 
 #include "Core/GameState.hpp"
 
@@ -10,6 +9,8 @@ namespace ReShield
 	class ReShieldPreGameState : public GameState
 	{
 	public:
+		ReShieldPreGameState(_In_ Game& InGame);
+
 		virtual void Begin() override;
 		virtual void Update() override;
 		virtual GameState* NextState() override;
@@ -20,5 +21,3 @@ namespace ReShield
 		GameState* _MainMenuState = nullptr;
 	};
 }
-
-#endif

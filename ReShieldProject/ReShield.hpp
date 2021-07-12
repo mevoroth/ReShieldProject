@@ -1,16 +1,12 @@
-#ifndef _RESHIELD_HPP_
-#define _RESHIELD_HPP_
+#pragma once
 
-#include <cstdint>
 #include <vector>
 #include "Macros/Macros.hpp"
 #include "Log/Log.hpp"
 
 namespace ReShield
 {
-	using namespace Eternal::Log;
+	using namespace Eternal::LogSystem;
 
 	const Log::LogCategory ReShieldGame("ReShieldGame");
 }
-
-#endif

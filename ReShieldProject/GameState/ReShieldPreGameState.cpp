@@ -3,22 +3,28 @@
 #include "ReShield.hpp"
 
 #include "Input/Input.hpp"
-
+#include "Core/System.hpp"
 #include "GameState/CoreState.hpp"
 #include "GameState/ReShieldMainMenuState.hpp"
 
 namespace ReShield
 {
-	using namespace Eternal::Log;
+	ReShieldPreGameState::ReShieldPreGameState(_In_ Game& InGame)
+		: GameState(InGame)
+	{
+	}
 
 	void ReShieldPreGameState::Begin()
 	{
-		_MainMenuState = new ReShieldMainMenuState();
+		_MainMenuState = new ReShieldMainMenuState(GetGame());
 	}
 	void ReShieldPreGameState::Update()
 	{
-		//Log::Get()->Write(Log::Info, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
-		if (Eternal::Input::Input::Get()->IsDown(Eternal::Input::Input::ESC))
+		using namespace Eternal;
+		using namespace Eternal::InputSystem;
+
+		LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
+		if (GetSystem().GetInput().IsDown(Input::ESC))
 		{
 			_NextState = _MainMenuState;
 		}

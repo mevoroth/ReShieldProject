@@ -12,7 +12,7 @@ namespace ReShield
 	class ReShieldInGameState : public GameState
 	{
 	public:
-		ReShieldInGameState();
+		ReShieldInGameState(_In_ Game& InGame);
 		~ReShieldInGameState();
 
 		virtual void Begin() override;

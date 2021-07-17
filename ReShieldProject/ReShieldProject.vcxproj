@@ -67,8 +67,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include;$(SolutionDir)eternal-engine-extern\optick\src</IncludePath>
-    <LibraryPath>D:\Code\VulkanSDK\1.2.176.1\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Code\FBX\FBX SDK\2020.0.1\lib\vs2017\x64\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include;$(SolutionDir)eternal-engine-extern\optick\src;D:\Software\FBXSDK\2020.2\include</IncludePath>
+    <LibraryPath>D:\Code\VulkanSDK\1.2.176.1\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Software\FBXSDK\2020.2\lib\vs2019\x64\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include;$(SolutionDir)eternal-engine-extern\optick\src</IncludePath>
@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12;ETERNAL_USE_DXMATH_TYPES;FBXSDK_SHARED;ETERNAL_DEBUG;SHADERC_ENABLE_SHARED_CRT=ON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12=1;ETERNAL_USE_DXMATH_TYPES=1;ETERNAL_DEBUG=1;SHADERC_ENABLE_SHARED_CRT=ON;FBXSDK_SHARED;IMGUI_USER_CONFIG="Imgui/ImguiConfig.hpp";ETERNAL_USE_STD_PARALLEL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>sal.h;optick.h;ReShield.hpp</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

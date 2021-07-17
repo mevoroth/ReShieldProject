@@ -27,12 +27,17 @@ namespace ReShield
 		using namespace Eternal::InputSystem;
 
 		LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldMainMenuState::Update]");
-		
-		if (GetSystem().GetInput().IsDown(Input::ESC))
+
+		ImGui::Begin("Main menu");
+		bool IsPlayPressed = ImGui::Button("Play (ENTER)");
+		bool IsQuitPressed = ImGui::Button("Quit (ESC)");
+		ImGui::End();
+
+		if (IsQuitPressed || GetSystem().GetInput().IsDown(Input::ESC))
 		{
 			_NextState = nullptr;
 		}
-		else if (GetSystem().GetInput().IsDown(Input::A))
+		else if (IsPlayPressed || GetSystem().GetInput().IsDown(Input::RETURN))
 		{
 			_NextState = _InGameState;
 		}
@@ -40,9 +45,5 @@ namespace ReShield
 	GameState* ReShieldMainMenuState::NextState()
 	{
 		return _NextState;
-	}
-	void ReShieldMainMenuState::End()
-	{
-
 	}
 }

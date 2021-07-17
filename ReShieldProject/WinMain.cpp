@@ -43,6 +43,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	SystemInformation.FBXPath			= "..\\assets\\fbx\\";
 	SystemInformation.ShaderIncludePath	= "..\\eternal-engine-shaders\\Shaders\\";
 	SystemInformation.TexturePath		= "..\\assets\\textures\\";
+	SystemInformation.LevelPath			= "..\\assets\\scenes\\";
 
 	GameCreateInformation GameInformation(SystemInformation);
 

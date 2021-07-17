@@ -36,11 +36,11 @@ LRESULT WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 void SampleRenderGeneric(GraphicsContext* Context, Eternal::InputSystem::Input* MultiInputHandle)
 {
-	Eternal::Parallel::ParallelSystemCreateInformation ParallelCreateInformation;
+	Eternal::Parallel::ParallelSystemCreateInformation ParallelCreateInformation(GraphicsContext::FrameBufferingCount);
 	Eternal::Parallel::ParallelSystem ParallelSystemDebug(ParallelCreateInformation);
 
 	OPTICK_THREAD("MainThread");
-	Eternal::Imgui::Imgui Imgui(*Context, MultiInputHandle);
+	Eternal::ImguiSystem::Imgui Imgui(*Context, MultiInputHandle);
 
 	ImmediateTextureFactoryLoadTextureCallback ImmediateLoadTexture;
 	ImmediateTextureFactoryCreateGpuResourceCallback ImmediateCreateGpuResource(*Context);

@@ -1,6 +1,6 @@
 #include "GameState/ReShieldInGameState.hpp"
 
-#include "SaveSystem/SaveSystem.hpp"
+//#include "SaveSystem/SaveSystem.hpp"
 
 #include "Types/Types.hpp"
 //#include "Core/CameraGameObject.hpp"
@@ -27,7 +27,7 @@ namespace ReShield
 
 	//};
 
-	using namespace Eternal::SaveSystem;
+	//using namespace Eternal::SaveSystem;
 	using namespace Eternal::Types;
 	using namespace Eternal::InputSystem;
 	using namespace Eternal::Components;

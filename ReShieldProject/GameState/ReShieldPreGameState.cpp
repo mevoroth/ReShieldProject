@@ -8,17 +8,9 @@
 #include "GameState/ReShieldMainMenuState.hpp"
 #include "Resources/Streaming.hpp"
 
-//TRASH
-#include "Resources/MeshPayload.hpp"
-#include "Mesh/Mesh.hpp"
-#include "Import/fbx/ImportFbx.hpp"
-
 namespace ReShield
 {
-	using namespace Eternal::Components;
 	using namespace Eternal::Import;
-
-	//TRASH
 	using namespace Eternal::Resources;
 
 	ReShieldPreGameState::ReShieldPreGameState(_In_ Game& InGame)
@@ -51,7 +43,7 @@ namespace ReShield
 	void ReShieldPreGameState::UpdateDebug()
 	{
 		using namespace Eternal;
-		LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
+		//LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldPreGameState::Update]");
 
 		bool IsWindowOpen = true;
 		ImGui::ShowMetricsWindow(&IsWindowOpen);

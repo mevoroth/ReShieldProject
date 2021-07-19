@@ -26,7 +26,7 @@ namespace ReShield
 		using namespace Eternal;
 		using namespace Eternal::InputSystem;
 
-		LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldMainMenuState::Update]");
+		//LogWrite(LogInfo, ReShield::ReShieldGame, "[ReShieldMainMenuState::Update]");
 
 		ImGui::Begin("Main menu");
 		bool IsPlayPressed = ImGui::Button("Play (ENTER)");

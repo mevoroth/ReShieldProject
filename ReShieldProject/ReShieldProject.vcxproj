@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12=1;ETERNAL_USE_DXMATH_TYPES=1;ETERNAL_DEBUG=1;SHADERC_ENABLE_SHARED_CRT=ON;FBXSDK_SHARED;IMGUI_USER_CONFIG="Imgui/ImguiConfig.hpp";ETERNAL_USE_STD_PARALLEL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ETERNAL_ENABLE_D3D12=1;ETERNAL_USE_DXMATH_TYPES=1;ETERNAL_DEBUG=1;SHADERC_ENABLE_SHARED_CRT=ON;FBXSDK_SHARED;IMGUI_USER_CONFIG="Imgui/ImguiConfig.hpp";ETERNAL_USE_STD_PARALLEL=1;ETERNAL_PROFILER_USE_VERBOSE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>sal.h;optick.h;ReShield.hpp</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

@@ -7,6 +7,7 @@
 #include "GameState/CoreState.hpp"
 #include "GameState/ReShieldMainMenuState.hpp"
 #include "Resources/Streaming.hpp"
+#include "Resources/LevelPayload.hpp"
 
 namespace ReShield
 {
@@ -22,7 +23,7 @@ namespace ReShield
 	{
 		_MainMenuState = new ReShieldMainMenuState(GetGame());
 
-		LevelRequest Request("Sponza.json");
+		LevelRequest* Request = new LevelRequest("Sponza.json");
 		GetSystem().GetStreaming().EnqueueRequest(Request);
 	}
 

@@ -203,7 +203,7 @@ void SampleRenderGeneric(GraphicsContext* Context, Eternal::InputSystem::Input* 
 			}
 
 			MapRange ConstantBufferMapRange(sizeof(FrameConstants));
-			FrameConstants* FrameConstantsPtr = static_cast<FrameConstants*>(ConstantBuffer->Map(ConstantBufferMapRange));
+			FrameConstants* FrameConstantsPtr = ConstantBuffer->Map<FrameConstants>(ConstantBufferMapRange);
 			FrameConstantsPtr->Multiplier = 2;
 			FrameConstantsPtr->Offset = -1;
 			ConstantBuffer->Unmap(ConstantBufferMapRange);

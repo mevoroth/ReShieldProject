@@ -17,7 +17,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	Eternal::DebugTools::WaitForDebugger();
 	
-	const DeviceType ProgramDeviceType = DeviceType::VULKAN;
+	const DeviceType ProgramDeviceType = DeviceType::D3D12;
 
 	const char* AppName = ProgramDeviceType == DeviceType::D3D12 ? "D3D12" : "Vulkan";
 

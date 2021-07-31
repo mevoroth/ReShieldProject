@@ -4,7 +4,6 @@
 
 #include "Input/Input.hpp"
 #include "Core/System.hpp"
-#include "GameState/CoreState.hpp"
 #include "GameState/ReShieldMainMenuState.hpp"
 #include "Resources/Streaming.hpp"
 #include "Resources/LevelPayload.hpp"

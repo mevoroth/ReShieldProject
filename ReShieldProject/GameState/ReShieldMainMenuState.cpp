@@ -4,7 +4,6 @@
 
 #include "Input/Input.hpp"
 
-#include "GameState/CoreState.hpp"
 #include "GameState/ReShieldInGameState.hpp"
 #include "GameState/ReShieldQuitState.hpp"
 #include "Core/System.hpp"

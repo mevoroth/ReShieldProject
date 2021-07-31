@@ -106,6 +106,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatSpecificWarningsAsErrors>4150;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
       <DisableSpecificWarnings>4189;4100</DisableSpecificWarnings>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -137,7 +138,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GameState\ReShieldInGameState.cpp" />
     <ClCompile Include="GameState\ReShieldMainMenuState.cpp" />
     <ClCompile Include="GameState\ReShieldPreGameState.cpp" />
@@ -146,7 +146,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Data\ReShieldData.hpp" />
-    <ClInclude Include="Debug.hpp" />
     <ClInclude Include="GameState\ReShieldInGameState.hpp" />
     <ClInclude Include="GameState\ReShieldMainMenuState.hpp" />
     <ClInclude Include="GameState\ReShieldPreGameState.hpp" />

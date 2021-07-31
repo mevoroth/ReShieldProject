@@ -14,7 +14,6 @@
     <ClCompile Include="GameState\ReShieldQuitState.cpp">
       <Filter>GameState</Filter>
     </ClCompile>
-    <ClCompile Include="Debug.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameState">
@@ -44,7 +43,6 @@
     <ClInclude Include="Data\ReShieldData.hpp">
       <Filter>Data</Filter>
     </ClInclude>
-    <ClInclude Include="Debug.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\save\save.sav">

@@ -68,7 +68,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include;$(SolutionDir)eternal-engine-extern\optick\src;D:\Software\FBXSDK\2020.2\include</IncludePath>
-    <LibraryPath>D:\Code\VulkanSDK\1.2.176.1\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Software\FBXSDK\2020.2\lib\vs2019\x64\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\Code\VulkanSDK\1.2.176.1\Lib;$(SolutionDir)eternal-engine-extern\shaderc\lib\v140\x64\Debug;D:\Software\FBXSDK\2020.2\lib\vs2019\x64\debug;$(SolutionDir)eternal-engine-extern\dxc\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.2.176.1\Include;$(SolutionDir)eternal-engine-extern\optick\src</IncludePath>
@@ -112,7 +112,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1.1\lib\vs2015\x64\debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;dxguid.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vulkan-1.lib;shaderc_shared.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Xinput9_1_0.lib;Shlwapi.lib;d3d12.lib;d3d11.lib;d3d10.lib;DXGI.lib;dxguid.lib;eternal-engine-extern.lib;eternal-engine-core.lib;eternal-engine-components.lib;eternal-engine-graphics.lib;eternal-engine-utils.lib;libfbxsdk.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vulkan-1.lib;shaderc_shared.lib;dxcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

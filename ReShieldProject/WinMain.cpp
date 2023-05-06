@@ -41,6 +41,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	
 	SystemCreateInformation SystemInformation(ContextCreateInformation);
 	SystemInformation.FBXPath			= "..\\assets\\fbx\\";
+	SystemInformation.FBXCachePath		= "..\\assets\\fbx\\cache\\";
 	SystemInformation.ShaderIncludePath	= { "..\\eternal-engine-shaders\\Shaders\\",
 											"..\\eternal-engine-shaders\\" };
 	SystemInformation.TexturePath		= "..\\assets\\textures\\";

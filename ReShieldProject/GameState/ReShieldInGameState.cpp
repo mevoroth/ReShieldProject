@@ -2,23 +2,23 @@
 
 //#include "SaveSystem/SaveSystem.hpp"
 
-#include "Types/Types.hpp"
+//#include "Types/Types.hpp"
 //#include "Core/CameraGameObject.hpp"
 //#include "Core/LightGameObject.hpp"
-#include "Core/StateSharedData.hpp"
+//#include "Core/StateSharedData.hpp"
 //#include "Core/CameraComponent.hpp"
 //#include "Core/TransformComponent.hpp"
 //#include "Core/LightComponent.hpp"
 //#include "Core/GraphicGameObject.hpp"
-#include "Transform/Transform.hpp"
-#include "Camera/Camera.hpp"
-#include "Light/Light.hpp"
-#include "Camera/PerspectiveCamera.hpp"
-#include "Input/Input.hpp"
+//#include "Transform/Transform.hpp"
+//#include "Camera/Camera.hpp"
+//#include "Light/Light.hpp"
+//#include "Camera/PerspectiveCamera.hpp"
+//#include "Input/Input.hpp"
 
 //#include "Core/GraphicGameObject.hpp"
 
-#include "imgui.h"
+//#include "imgui.h"
 
 namespace ReShield
 {
@@ -28,9 +28,9 @@ namespace ReShield
 	//};
 
 	//using namespace Eternal::SaveSystem;
-	using namespace Eternal::Types;
-	using namespace Eternal::InputSystem;
-	using namespace Eternal::Components;
+	//using namespace Eternal::Types;
+	//using namespace Eternal::InputSystem;
+	//using namespace Eternal::Components;
 
 	ReShieldInGameState::ReShieldInGameState(_In_ Game& InGame)
 		: GameState(InGame)
@@ -251,9 +251,9 @@ namespace ReShield
 	{
 		return this;
 	}
-	void ReShieldInGameState::End()
-	{
+	//void ReShieldInGameState::End()
+	//{
 
-	}
+	//}
 }
 

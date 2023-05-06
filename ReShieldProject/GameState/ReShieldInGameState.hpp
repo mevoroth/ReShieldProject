@@ -18,7 +18,7 @@ namespace ReShield
 		virtual void Begin() override;
 		virtual void Update() override;
 		virtual GameState* NextState() override;
-		virtual void End() override;
+		//virtual void End() override;
 
 	private:
 		//ReShieldInGameStateData* _ReShieldInGameStateData = nullptr;

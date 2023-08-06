@@ -23,7 +23,7 @@ namespace ReShield
 		_MainMenuState = new ReShieldMainMenuState(GetGame());
 
 		LevelRequest* Request = new LevelRequest("Sponza.json");
-		GetSystem().GetStreaming().EnqueueRequest(Request);
+		GetSystem().GetStreaming().EnqueueRequest_MainThread(Request);
 	}
 
 	void ReShieldPreGameState::Update()

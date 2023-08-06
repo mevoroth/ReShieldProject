@@ -21,7 +21,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	const char* AppName = ProgramDeviceType == DeviceType::D3D12 ? "D3D12" : "Vulkan";
 
-	OPTICK_APP(AppName);
+	//OPTICK_APP(AppName);
 
 	RenderSettings Settings(
 		ProgramDeviceType,

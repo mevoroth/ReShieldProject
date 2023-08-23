@@ -25,6 +25,9 @@
     <Filter Include="Save">
       <UniqueIdentifier>{a5aa8a67-a497-4165-8b57-d44ee2d26780}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{1ec516bf-7fa2-442d-a817-706afcca3bba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameState\ReShieldInGameState.hpp">
@@ -49,5 +52,13 @@
       <Filter>Save</Filter>
     </None>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\..\FBXSDK\2020.3.4\lib\vs2022\x64\debug\libfbxsdk.dll">
+      <Filter>Libraries</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="..\eternal-engine-extern\dxc\bin\dxil.dll">
+      <Filter>Libraries</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

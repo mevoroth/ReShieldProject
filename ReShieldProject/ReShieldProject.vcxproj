@@ -45,7 +45,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Code\VulkanSDK\1.3.231.1\Include;$(SolutionDir)eternal-engine-extern\optick\src;D:\Software\FBXSDK\2020.2\include</IncludePath>
+    <IncludePath>$(SolutionDir)ReShieldProject;$(SolutionDir)eternal-engine-core\include;$(SolutionDir)eternal-engine-graphics\include;$(SolutionDir)eternal-engine-components\include;$(SolutionDir)eternal-engine-utils\include;$(SolutionDir)eternal-engine-extern\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)eternal-engine-extern\optick\src;$(SolutionDir)eternal-engine-shaders</IncludePath>
     <LibraryPath>E:\Code\VulkanSDK\1.3.250.1\Lib;E:\Code\FBXSDK\2020.3.4\lib\vs2022\x64\debug;$(SolutionDir)eternal-engine-extern\dxc\lib\x64;$(LibraryPath)</LibraryPath>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>

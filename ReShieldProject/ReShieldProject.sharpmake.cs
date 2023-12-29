@@ -4,7 +4,7 @@ using EternalEngine;
 namespace ReShieldProject
 {
 	[Sharpmake.Generate]
-	public class ReShieldProjectProject : EternalEngineProject
+	public class ReShieldProjectProject : EternalEngineBaseProject
 	{
 		public ReShieldProjectProject()
 			: base()
@@ -18,14 +18,8 @@ namespace ReShieldProject
 
 			InConfiguration.Output = Configuration.OutputType.Exe;
 
-			// Options
-			InConfiguration.Options.Add(Options.Vc.Compiler.CppLanguageStandard.CPP14);
-			InConfiguration.Options.Add(new Options.Vc.Linker.StackSize(8388608));
-			InConfiguration.Options.Add(Options.Vc.General.WarningLevel.Level4);
-			InConfiguration.Options.Add(Options.Vc.Compiler.MultiProcessorCompilation.Enable);
-
-			// Library paths
-			InConfiguration.IncludePaths.Add(new string[] {
+			// Include paths
+			InConfiguration.IncludePaths.AddRange(new string[] {
 				@"$(SolutionDir)ReShieldProject",
 				@"$(SolutionDir)eternal-engine-core\include",
 				@"$(SolutionDir)eternal-engine-graphics\include",
@@ -35,12 +29,12 @@ namespace ReShieldProject
 				@"$(SolutionDir)eternal-engine-shaders",
 			});
 
-			InConfiguration.ForcedIncludes.Add(new string[] {
+			InConfiguration.ForcedIncludes.AddRange(new string[] {
 				@"ReShield.hpp",
 			});
 
 			// Libraries
-			InConfiguration.LibraryFiles.Add(new string[] {
+			InConfiguration.LibraryFiles.AddRange(new string[] {
 				"Xinput9_1_0.lib",
 				"Shlwapi.lib",
 				"d3d12.lib",
@@ -72,20 +66,20 @@ namespace ReShieldProject
 			});
 
 			// Defines
-			InConfiguration.Defines.Add(new string[] {
+			InConfiguration.Defines.AddRange(new string[] {
 				"SHADERC_ENABLE_SHARED_CRT=ON",
 				"FBXSDK_SHARED=1",
 			});
 
 			if (InTarget.Optimization == Optimization.Debug)
 			{
-				InConfiguration.LibraryPaths.Add(new string[] {
+				InConfiguration.LibraryPaths.AddRange(new string[] {
 					EternalEngineSettings.VulkanPath + @"\Lib",
 					EternalEngineSettings.FBXSDKPath + @"\lib\vs2022\x64\debug",
 					@"$(SolutionDir)eternal-engine-extern\dxc\lib\x64"
 				});
 
-				InConfiguration.TargetCopyFiles.Add(new string[] {
+				InConfiguration.TargetCopyFiles.AddRange(new string[] {
 					@"[project.SharpmakeCsPath]\..\eternal-engine-extern\dxc\bin\dxil.dll",
 					EternalEngineSettings.FBXSDKPath + @"\lib\vs2022\x64\debug\libfbxsdk.dll",
 				});
@@ -94,12 +88,26 @@ namespace ReShieldProject
 			if (InTarget.Platform == Platform.win32 || InTarget.Platform == Platform.win64)
 			{
 				InConfiguration.Options.Add(Options.Vc.Linker.SubSystem.Windows);
-				InConfiguration.IncludePaths.Add(new string[] {
-					@"$(SolutionDir)packages\Microsoft.Direct3D.D3D12." + EternalEngineSettings.MicrosoftDirect3DD3D12Version + @"\Include",
-					@"$(SolutionDir)packages\WinPixEventRuntime." + EternalEngineSettings.WinPixEventRuntimeVersion + @"\Include",
-				});
-				InConfiguration.ReferencesByNuGetPackage.Add("WinPixEventRuntime", EternalEngineSettings.WinPixEventRuntimeVersion);
-				InConfiguration.ReferencesByNuGetPackage.Add("Microsoft.Direct3D.D3D12", EternalEngineSettings.MicrosoftDirect3DD3D12Version);
+
+				if (InTarget.Optimization == Optimization.Debug)
+				{
+					InConfiguration.IncludePaths.AddRange(new string[] {
+						@"$(SolutionDir)packages\Microsoft.Direct3D.D3D12." + EternalEngineSettings.MicrosoftDirect3DD3D12Version + @"\Include",
+						@"$(SolutionDir)packages\WinPixEventRuntime." + EternalEngineSettings.WinPixEventRuntimeVersion + @"\Include",
+					});
+					InConfiguration.LibraryPaths.AddRange(new string[] {
+						@"$(SolutionDir)packages\WinPixEventRuntime." + EternalEngineSettings.WinPixEventRuntimeVersion + @"\bin\x64",
+					});
+					InConfiguration.LibraryFiles.AddRange(new string[] {
+						"WinPixEventRuntime.lib"
+					});
+					InConfiguration.ReferencesByNuGetPackage.Add("WinPixEventRuntime", EternalEngineSettings.WinPixEventRuntimeVersion);
+					InConfiguration.ReferencesByNuGetPackage.Add("Microsoft.Direct3D.D3D12", EternalEngineSettings.MicrosoftDirect3DD3D12Version);
+
+					InConfiguration.TargetCopyFiles.AddRange(new string[] {
+						@"[project.SharpmakeCsPath]\..\packages\WinPixEventRuntime." + EternalEngineSettings.WinPixEventRuntimeVersion + @"\bin\x64\WinPixEventRuntime.dll"
+					});
+				}
 			}
 
 			InConfiguration.AddPublicDependency<EternalEngineComponentsProject>(InTarget);

@@ -1,6 +1,7 @@
 ﻿using Sharpmake;
 using EternalEngine;
 
+[module: Sharpmake.Include(@"eternal-engine\eternal-engine.sharpmake.cs")]
 [module: Sharpmake.Include(@"eternal-engine-components\eternal-engine-components.sharpmake.cs")]
 [module: Sharpmake.Include(@"eternal-engine-core\eternal-engine-core.sharpmake.cs")]
 [module: Sharpmake.Include(@"eternal-engine-extern\eternal-engine-extern.sharpmake.cs")]

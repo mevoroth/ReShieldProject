@@ -1,6 +1,8 @@
 #include "DebugTools/Debug.hpp"
 #include "Graphics/GraphicsContext.hpp"
-#include "Platform/WindowsProcess.hpp"
+#include "Platform/Windows/WindowsProcess.hpp"
+#include "Windows/WindowsArguments.hpp"
+#include "Windows/WindowsGraphicsContext.hpp"
 #include "Core/Game.hpp"
 #include "Core/System.hpp"
 #include "GameState/ReShieldPreGameState.hpp"
@@ -18,9 +20,9 @@ int WINAPI WinMain(
 
 	Eternal::DebugTools::WaitForDebugger();
 	
-	const DeviceType ProgramDeviceType = DeviceType::VULKAN;
+	const DeviceType ProgramDeviceType = DeviceType::DEVICE_TYPE_DEFAULT;
 
-	const char* AppName = ProgramDeviceType == DeviceType::D3D12 ? "D3D12" : "Vulkan";
+	const char* AppName = ProgramDeviceType == DeviceType::DEVICE_TYPE_D3D12 ? "D3D12" : "Vulkan";
 
 	//OPTICK_APP(AppName);
 
@@ -38,7 +40,7 @@ int WINAPI WinMain(
 		AppName,
 		WindowsProcess::WindowProc
 	);
-	GraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
+	WindowsGraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
 	
 	SystemCreateInformation SystemInformation(ContextCreateInformation);
 	SystemInformation.FBXPath			= "..\\assets\\fbx\\";

@@ -38,8 +38,6 @@ namespace ReShieldProject
 				"Xinput9_1_0.lib",
 				"Shlwapi.lib",
 				"d3d12.lib",
-				"d3d11.lib",
-				"d3d10.lib",
 				"DXGI.lib",
 				"dxguid.lib",
 				"eternal-engine-extern.lib",
@@ -109,6 +107,8 @@ namespace ReShieldProject
 					});
 				}
 			}
+
+			InConfiguration.SourceFilesBuildExcludeRegex.Add(InTarget.Platform == Platform.win64 || InTarget.Platform == Platform.win32 ? @".*main.cpp$" : @".*WinMain.cpp");
 
 			InConfiguration.AddPublicDependency<EternalEngineComponentsProject>(InTarget);
 			InConfiguration.AddPublicDependency<EternalEngineCoreProject>(InTarget);

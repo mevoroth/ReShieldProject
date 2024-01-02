@@ -65,6 +65,7 @@ namespace ReShieldProject
 		{
 			KitsRootPaths.SetUseKitsRootForDevEnv(DevEnv.vs2022, KitsRootEnum.KitsRoot10, Options.Vc.General.WindowsTargetPlatformVersion.Latest);
 			InArguments.Generate<ReShieldProjectSolution>();
+			InArguments.Generate<EternalEngineSolution>();
 		}
 	}
 }

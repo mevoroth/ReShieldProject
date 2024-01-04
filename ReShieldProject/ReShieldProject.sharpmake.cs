@@ -17,6 +17,8 @@ namespace ReShieldProject
 			base.ConfigureAll(InConfiguration, InTarget);
 
 			InConfiguration.Output = Configuration.OutputType.Exe;
+			InConfiguration.TargetFileFullExtension = null;
+
 
 			// Include paths
 			InConfiguration.IncludePaths.AddRange(new string[] {
@@ -29,39 +31,46 @@ namespace ReShieldProject
 				@"$(SolutionDir)eternal-engine-shaders",
 			});
 
+			if (!ExtensionMethods.IsPC(InTarget.Platform))
+			{
+				InConfiguration.IncludePaths.AddRange(new string[] {
+					@"$(SolutionDir)ReShieldProject",
+					@"$(SolutionDir)eternal-engine-core\CorePrivate\include",
+					@"$(SolutionDir)eternal-engine-graphics\GraphicsPrivate\include",
+				});
+			}
+
 			InConfiguration.ForcedIncludes.AddRange(new string[] {
 				@"ReShield.hpp",
 			});
 
 			// Libraries
-			InConfiguration.LibraryFiles.AddRange(new string[] {
-				"Xinput9_1_0.lib",
-				"Shlwapi.lib",
-				"d3d12.lib",
-				"DXGI.lib",
-				"dxguid.lib",
-				"eternal-engine-extern.lib",
-				"eternal-engine-core.lib",
-				"eternal-engine-components.lib",
-				"eternal-engine-graphics.lib",
-				"eternal-engine-utils.lib",
-				"libfbxsdk.lib",
-				"kernel32.lib",
-				"user32.lib",
-				"gdi32.lib",
-				"winspool.lib",
-				"comdlg32.lib",
-				"advapi32.lib",
-				"shell32.lib",
-				"ole32.lib",
-				"oleaut32.lib",
-				"uuid.lib",
-				"odbc32.lib",
-				"odbccp32.lib",
-				"vulkan-1.lib",
-				"shaderc_shared.lib",
-				"dxcompiler.lib",
-			});
+			if (ExtensionMethods.IsPC(InTarget.Platform))
+			{
+				InConfiguration.LibraryFiles.AddRange(new string[] {
+					"Xinput9_1_0.lib",
+					"Shlwapi.lib",
+					"d3d12.lib",
+					"DXGI.lib",
+					"dxguid.lib",
+					"libfbxsdk.lib",
+					"kernel32.lib",
+					"user32.lib",
+					"gdi32.lib",
+					"winspool.lib",
+					"comdlg32.lib",
+					"advapi32.lib",
+					"shell32.lib",
+					"ole32.lib",
+					"oleaut32.lib",
+					"uuid.lib",
+					"odbc32.lib",
+					"odbccp32.lib",
+					"vulkan-1.lib",
+					"shaderc_shared.lib",
+					"dxcompiler.lib",
+				});
+			}
 
 			// Defines
 			InConfiguration.Defines.AddRange(new string[] {
@@ -83,7 +92,7 @@ namespace ReShieldProject
 				});
 			}
 
-			if (InTarget.Platform == Platform.win32 || InTarget.Platform == Platform.win64)
+			if (ExtensionMethods.IsPC(InTarget.Platform))
 			{
 				InConfiguration.Options.Add(Options.Vc.Linker.SubSystem.Windows);
 
@@ -108,7 +117,7 @@ namespace ReShieldProject
 				}
 			}
 
-			InConfiguration.SourceFilesBuildExcludeRegex.Add(InTarget.Platform == Platform.win64 || InTarget.Platform == Platform.win32 ? @".*main.cpp$" : @".*WinMain.cpp");
+			InConfiguration.SourceFilesBuildExcludeRegex.Add(ExtensionMethods.IsPC(InTarget.Platform) ? @".*main.cpp$" : @".*WinMain.cpp");
 
 			InConfiguration.AddPublicDependency<EternalEngineComponentsProject>(InTarget);
 			InConfiguration.AddPublicDependency<EternalEngineCoreProject>(InTarget);

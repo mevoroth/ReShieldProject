@@ -50,6 +50,8 @@ int WINAPI WinMain(
 	SystemInformation.ShaderPDBPath		= "..\\assets\\shaders_pdb\\";
 	SystemInformation.TexturePath		= "..\\assets\\textures\\";
 	SystemInformation.LevelPath			= "..\\assets\\scenes\\";
+	SystemInformation.PipelineCachePath	= "..\\assets\\pipelines\\";
+	SystemInformation.MaterialPath		= "..\\assets\\materials\\";
 
 	GameCreateInformation GameInformation(SystemInformation);
 

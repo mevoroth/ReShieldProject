@@ -117,7 +117,7 @@ namespace ReShieldProject
 				}
 			}
 
-			InConfiguration.SourceFilesBuildExcludeRegex.Add(ExtensionMethods.IsPC(InTarget.Platform) ? @".*main.cpp$" : @".*WinMain.cpp");
+			InConfiguration.SourceFilesBuildExcludeRegex.Add(ExtensionMethods.IsPC(InTarget.Platform) ? @".*\\main.cpp$" : @".*\\WinMain.cpp$");
 
 			InConfiguration.AddPublicDependency<EternalEngineComponentsProject>(InTarget);
 			InConfiguration.AddPublicDependency<EternalEngineCoreProject>(InTarget);

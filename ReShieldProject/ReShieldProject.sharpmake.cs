@@ -78,7 +78,7 @@ namespace ReShieldProject
 				"FBXSDK_SHARED=1",
 			});
 
-			if (InTarget.Optimization == Optimization.Debug)
+			if (ExtensionMethods.IsPC(InTarget.Platform) && InTarget.Optimization == Optimization.Debug)
 			{
 				InConfiguration.LibraryPaths.AddRange(new string[] {
 					EternalEngineSettings.VulkanPath + @"\Lib",
@@ -117,7 +117,18 @@ namespace ReShieldProject
 				}
 			}
 
-			InConfiguration.SourceFilesBuildExcludeRegex.Add(ExtensionMethods.IsPC(InTarget.Platform) ? @".*\\main.cpp$" : @".*\\WinMain.cpp$");
+			if (ExtensionMethods.IsPC(InTarget.Platform) || InTarget.Platform == Platform.scarlett)
+			{
+				InConfiguration.SourceFilesBuildExcludeRegex.Add(@".*\\main.cpp$");
+			}
+			if (InTarget.Platform == Platform.prospero || InTarget.Platform == Platform.scarlett)
+			{
+				InConfiguration.SourceFilesBuildExcludeRegex.Add(@".*\\WinMain.cpp");
+			}
+			if (ExtensionMethods.IsPC(InTarget.Platform) || InTarget.Platform == Platform.prospero)
+			{
+				InConfiguration.SourceFilesBuildExcludeRegex.Add(@".*\\XSXMain.cpp");
+			}
 
 			InConfiguration.AddPublicDependency<EternalEngineComponentsProject>(InTarget);
 			InConfiguration.AddPublicDependency<EternalEngineCoreProject>(InTarget);

@@ -1,6 +1,6 @@
 #include "DebugTools/Debug.hpp"
 #include "Graphics/GraphicsContext.hpp"
-#include "Platform/Windows/WindowsProcess.hpp"
+#include "Platform/Microsoft/MicrosoftProcess.hpp"
 #include "Windows/WindowsArguments.hpp"
 #include "Windows/WindowsGraphicsContext.hpp"
 #include "Core/Game.hpp"
@@ -19,7 +19,7 @@ int WINAPI WinMain(
 	using namespace Eternal::Core;
 
 	Eternal::DebugTools::WaitForDebugger();
-	
+
 	const DeviceType ProgramDeviceType = DeviceType::DEVICE_TYPE_DEFAULT;
 
 	const char* AppName = ProgramDeviceType == DeviceType::DEVICE_TYPE_D3D12 ? "D3D12" : "Vulkan";
@@ -38,10 +38,10 @@ int WINAPI WinMain(
 		nCmdShow,
 		AppName,
 		AppName,
-		WindowsProcess::WindowProc
+		MicrosoftProcess::WindowProc
 	);
 	WindowsGraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
-	
+
 	SystemCreateInformation SystemInformation(ContextCreateInformation);
 	SystemInformation.FBXPath			= "..\\assets\\fbx\\";
 	SystemInformation.FBXCachePath		= "..\\assets\\fbx\\cache\\";

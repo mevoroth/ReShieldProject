@@ -31,5 +31,5 @@
 [submodule "eternal-engine"]
 	path = eternal-engine
 	url = git@github.com:mevoroth/eternal-engine.git
-	branch = master
+	branch = main
 	update = rebase

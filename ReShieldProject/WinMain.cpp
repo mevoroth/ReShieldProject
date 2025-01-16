@@ -1,10 +1,5 @@
-#include "DebugTools/Debug.hpp"
-#include "Graphics/GraphicsContext.hpp"
-#include "Platform/Microsoft/MicrosoftProcess.hpp"
-#include "Windows/WindowsArguments.hpp"
-#include "Windows/WindowsGraphicsContext.hpp"
-#include "Core/Game.hpp"
-#include "Core/System.hpp"
+#include <Windows.h>
+#include "Core/Main.hpp"
 #include "GameState/ReShieldPreGameState.hpp"
 
 int WINAPI WinMain(
@@ -13,50 +8,16 @@ int WINAPI WinMain(
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow)
 {
-	using namespace ReShield;
-	using namespace Eternal::Graphics;
-	using namespace Eternal::Platform;
 	using namespace Eternal::Core;
-
-	Eternal::DebugTools::WaitForDebugger();
-
-	const DeviceType ProgramDeviceType = DeviceType::DEVICE_TYPE_DEFAULT;
-
-	const char* AppName = ProgramDeviceType == DeviceType::DEVICE_TYPE_D3D12 ? "D3D12" : "Vulkan";
 
 	//OPTICK_APP(AppName);
 
-	RenderSettings Settings(
-		ProgramDeviceType,
-		1600, 900,
-		/*InIsVSync =*/ true
-	);
-	WindowsArguments WinArguments(
-		hInstance,
-		hPrevInstance,
-		lpCmdLine,
-		nCmdShow,
-		AppName,
-		AppName,
-		MicrosoftProcess::WindowProc
-	);
-	WindowsGraphicsContextCreateInformation ContextCreateInformation(Settings, WinArguments);
+	MainInput Input;
+	Input.ApplicationName	= "ReShield";
+	Input.hInstance			= hInstance;
+	Input.hPrevInstance		= hPrevInstance;
+	Input.lpCmdLine			= lpCmdLine;
+	Input.nCmdShow			= nCmdShow;
 
-	SystemCreateInformation SystemInformation(ContextCreateInformation);
-	SystemInformation.FBXPath			= "..\\assets\\fbx\\";
-	SystemInformation.FBXCachePath		= "..\\assets\\fbx\\cache\\";
-	SystemInformation.ShaderIncludePath	= { "..\\eternal-engine-shaders\\Shaders\\",
-											"..\\eternal-engine-shaders\\" };
-	SystemInformation.ShaderPDBPath		= "..\\assets\\shaders_pdb\\";
-	SystemInformation.TexturePath		= "..\\assets\\textures\\";
-	SystemInformation.LevelPath			= "..\\assets\\scenes\\";
-	SystemInformation.PipelineCachePath	= "..\\assets\\pipelines\\";
-	SystemInformation.MaterialPath		= "..\\assets\\materials\\";
-
-	GameCreateInformation GameInformation(SystemInformation);
-
-	StartGame<ReShieldPreGameState> EternalGame(GameInformation);
-	EternalGame.Run();
-
-	return 0;
+	return Main<ReShield::ReShieldPreGameState>(Input);
 }
